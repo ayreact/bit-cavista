@@ -7,9 +7,11 @@ import httpx
 from dotenv import load_dotenv
 import os
 from twilio.rest import Client
+from ai_engine.fastapi_app import ReadingRequest
+from ai_engine.api import CardioTwinAPI
+
 
 load_dotenv()
-AI_SERVICE_URL = os.getenv('DATABASE_URL')
 # Load Twilio credentials
 ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
@@ -17,7 +19,7 @@ SMS_NUMBER = os.getenv("TWILIO_SMS_NUMBER")
 WHATSAPP_NUMBER = os.getenv("TWILIO_WHATSAPP_NUMBER")
 
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
-
+ai = CardioTwinAPI()
 
 
 router = APIRouter(
@@ -95,45 +97,13 @@ def send_alert(request: readingsDto.MessageRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/predict")
-async def predict(
-    data: readingsDto.PredictionsRequest,
-    db=Depends(get_db)
-):
-    """
-    Sends biometric data + baseline to external AI service
-    and returns AI prediction response.
-    """
-
-    ai_payload = {
-        "bpm": data.bpm,
-        "hrv": data.hrv,
-        "spo2": data.spo2,
-        "temperature": data.temperature,
-        "timestamp": data.timestamp,
-        "session_id": data.session_id,
-        "days": data.days
-    }
-
-    # Call AI service
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.post(AI_SERVICE_URL, json=ai_payload)
-            response.raise_for_status()
-    except httpx.RequestError:
-        raise HTTPException(
-            status_code=500,
-            detail="AI service unavailable"
-        )
-    except httpx.HTTPStatusError as e:
-        raise HTTPException(
-            status_code=e.response.status_code,
-            detail=e.response.text
-        )
-
-    # 5 Return AI response directly
-    ai_response = response.json()
-    exisiting_session = sessionService.fetch_session(data.session_id,db)
-    message_request = readingsDto.MessageRequest(to_phone=exisiting_session.user_phone, message= "", channel ="whatsapp")
-    send_alert(message_request)
+def process_reading(request: ReadingRequest, db: Session = Depends(get_db)):
+    result = ai.process_reading(request.dict())
     
-    return ai_response
+    if result.get("nudge_sent"):
+        exisiting_session = sessionService.fetch_session(request.session_id,db)
+        message_request = readingsDto.MessageRequest(to_phone=exisiting_session.user_phone, message= "", channel ="whatsapp")
+        send_alert(message_request)
+        return result
+    else:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='an error occurred with ai service')
