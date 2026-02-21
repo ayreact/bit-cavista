@@ -4,8 +4,6 @@ from dtos import readingsDto
 from repository import database
 
 
-database.Base.metadata.create_all(bind=database.engine)
-
 #receives biometric reading from ESP32. Called every 2 seconds
 def get_readings_from_hardware(data,db):
     biometric_reading = dataModel.BiometricReading(bpm=data.bpm, hrv = data.hrv, spo2 = data.spo2, temperature=data.temperature, timestamp = data.timestamp, session_id=data.session_id)
