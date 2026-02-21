@@ -1,12 +1,21 @@
-from fastapi import APIRouter, Depends, status
-from service import sessionService
-from repository import database
-from dtos import sessionDto
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from dtos import sessionDto
+from service import sessionService
+from repository.database import get_db
 
-session_router = APIRouter()
+session_router = APIRouter(
+    prefix="/api/session",
+    tags=["Session"]
+)
 
-@session_router.post('/api/session/start', status_code=status.HTTP_201_CREATED, response_model=sessionDto.SessionResponse)
-def create_session(data: sessionDto.SessionRequest, db:Session = Depends(database.getDB)):
-    return sessionService.create_session(data,db)
+@session_router.post("/start")
+def start_session(
+    data: sessionDto.SessionStartRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Starts a new measurement session.
+    """
+    return sessionService.start_session(data, db)
 

@@ -1,4 +1,6 @@
 fastapi
-requests
-sqlalchemy
 uvicorn
+sqlalchemy
+pydantic
+httpx
+python-dotenv
