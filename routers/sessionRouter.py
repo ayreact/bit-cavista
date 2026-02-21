@@ -19,3 +19,6 @@ def start_session(
     """
     return sessionService.start_session(data, db)
 
+@session_router.get('/end/{session_id}')
+def end_session(session_id):
+    return sessionService.end_session()

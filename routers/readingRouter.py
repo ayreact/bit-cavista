@@ -37,7 +37,7 @@ def receive_biometric_reading(
     Returns calibrating response until 15 readings collected,
     then returns scored response.
     """
-    return readingService.process_reading(data, db)
+    return readingService.process_reading(data)
 
 
 @router.get("/score/{session_id}")
@@ -48,7 +48,7 @@ def get_latest_score(
     """
     Returns the latest score for frontend polling.
     """
-    return readingService.get_latest_score(session_id, db)
+    return readingService.get_latest_score(session_id)
 
 
 @router.get("/history/{session_id}")
@@ -60,7 +60,7 @@ def get_score_history(
     Returns all scores for chart rendering.
     Array of score objects with timestamps.
     """
-    return readingService.get_all_scores(session_id, db)
+    return readingService.get_all_scores(session_id)
 
 
 
@@ -98,11 +98,12 @@ def send_alert(request: readingsDto.MessageRequest):
 
 @router.post("/predict")
 def process_reading(request: ReadingRequest, db: Session = Depends(get_db)):
-    result = ai.process_reading(request.dict())
+    result = ai.predict(request)
     
     if result.get("nudge_sent"):
         exisiting_session = sessionService.fetch_session(request.session_id,db)
-        message_request = readingsDto.MessageRequest(to_phone=exisiting_session.user_phone, message= "", channel ="whatsapp")
+        message = ai.get_nudge_message()
+        message_request = readingsDto.MessageRequest(to_phone=exisiting_session.user_phone, message= message, channel ="whatsapp")
         send_alert(message_request)
         return result
     else:
