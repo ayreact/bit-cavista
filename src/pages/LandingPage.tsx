@@ -1,6 +1,8 @@
 import { Shield, Lock, ArrowRight, Verified, Fingerprint } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function LandingPage() {
+    const navigate = useNavigate();
     return (
         <>
             <main className="relative overflow-hidden pt-16 pb-24 lg:pt-32 lg:pb-40">
@@ -12,13 +14,6 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         <div className="flex flex-col gap-8">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider w-fit">
-                                <span className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                                </span>
-                                Live AI Diagnostics
-                            </div>
 
                             <div className="space-y-4">
                                 <h1 className="text-5xl lg:text-7xl font-black leading-[1.1] tracking-tight text-slate-900 dark:text-white">
@@ -39,11 +34,14 @@ export default function LandingPage() {
                                         </div>
                                         <input
                                             type="tel"
-                                            className="bg-transparent border-none focus:ring-0 w-full text-slate-900 dark:text-white placeholder:text-slate-500"
+                                            className="bg-transparent border-none focus:outline-none w-full text-slate-900 dark:text-white placeholder:text-slate-500 ml-2"
                                             placeholder="WhatsApp Number"
                                         />
                                     </div>
-                                    <button className="bg-primary hover:bg-primary/90 text-background-dark px-8 py-4 rounded-lg font-black text-base transition-all flex items-center justify-center gap-2 whitespace-nowrap">
+                                    <button
+                                        onClick={() => navigate('/dashboard')}
+                                        className="bg-primary hover:bg-primary/90 text-background-dark px-8 py-4 rounded-lg font-black text-base transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
+                                    >
                                         Start Screening
                                         <ArrowRight className="w-5 h-5" />
                                     </button>
@@ -66,7 +64,7 @@ export default function LandingPage() {
                             <div className="absolute -inset-4 bg-primary/20 blur-3xl rounded-full opacity-30"></div>
                             <div className="relative rounded-2xl overflow-hidden border border-primary/20 shadow-2xl aspect-[4/3]">
                                 <img
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaZIVZVVWMvwPIFI9zbmaL9S5zKGkBPjT3kLGZ-nDpLpVHIbuyTCHCR7YKiZIa7Y9O6ZbmiDRg5TT9qR8LCLdZByL-YyIS5cEs5Pc4TrQA8mnomAjb2KB8RF6Sl52u3-G_1vllXh5HeP0ZpZJr-TqOptTXoM621McRuTr2eTxj2ovoR6jyfk4avf-8dLR7PIdR_D51AuStOFTss0YJKixwt9C0HvVp-n3qAEZisgnCG6Ij-RkUDSINoPVQ1Lfu0BwxGvq0TfuxYGE"
+                                    src="/assets/hero-heart.jpg"
                                     alt="AI Medical Interface"
                                     className="w-full h-full object-cover"
                                 />
@@ -255,8 +253,11 @@ export default function LandingPage() {
                                     className="flex-1 bg-white/5 border border-primary/20 rounded-lg px-4 py-4 focus:ring-primary focus:border-primary text-slate-900 dark:text-white"
                                     placeholder="+234 WhatsApp Number"
                                 />
-                                <button className="bg-primary hover:bg-primary/90 text-background-dark px-8 py-4 rounded-lg font-black transition-all">
-                                    Free Screening
+                                <button
+                                    onClick={() => navigate('/dashboard')}
+                                    className="bg-primary hover:bg-primary/90 text-background-dark px-5 py-4 rounded-lg font-black transition-all cursor-pointer"
+                                >
+                                    Start Screening
                                 </button>
                             </div>
                             <p className="text-xs text-slate-500">
