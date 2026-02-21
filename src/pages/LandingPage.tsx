@@ -1,8 +1,31 @@
 import { Shield, Lock, Verified } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { api } from '../services/api';
 
 export default function LandingPage() {
     const navigate = useNavigate();
+    const [phone, setPhone] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleStart = async () => {
+        if (!phone.trim()) {
+            alert('Please enter your WhatsApp number.');
+            return;
+        }
+        setIsLoading(true);
+        try {
+            const sessionId = `session-${Date.now()}`;
+            await api.startSession({ session_id: sessionId, user_id: `+234${phone.trim()}` });
+            navigate(`/dashboard?session_id=${sessionId}`);
+        } catch (err) {
+            console.error('Session start failed:', err);
+            // Fallback for resilient UI demo
+            navigate(`/dashboard?session_id=session-${Date.now()}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
     return (
         <>
             <main className="relative overflow-hidden pt-16 pb-24 lg:pt-32 lg:pb-40 bg-white">
@@ -34,13 +57,16 @@ export default function LandingPage() {
                                             type="tel"
                                             className="bg-transparent border-none focus:outline-none w-full text-background-dark placeholder:text-background-dark/40 ml-3 font-medium"
                                             placeholder="WhatsApp Number"
+                                            value={phone}
+                                            onChange={(e) => setPhone(e.target.value)}
                                         />
                                     </div>
                                     <button
-                                        onClick={() => navigate('/dashboard?session_id=DEMO_SESSION_123')}
-                                        className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer shadow-lg shadow-primary/20"
+                                        onClick={handleStart}
+                                        disabled={isLoading}
+                                        className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer shadow-lg shadow-primary/20 disabled:opacity-50"
                                     >
-                                        Start Screening
+                                        {isLoading ? 'Starting...' : 'Start Screening'}
                                     </button>
                                 </div>
                             </div>
@@ -236,13 +262,16 @@ export default function LandingPage() {
                                         type="tel"
                                         className="bg-transparent border-none focus:outline-none w-full text-background-dark placeholder:text-background-dark/40 ml-3 py-4 font-medium"
                                         placeholder="WhatsApp Number"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
                                     />
                                 </div>
                                 <button
-                                    onClick={() => navigate('/dashboard')}
-                                    className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-primary/20 transition-all cursor-pointer text-lg"
+                                    onClick={handleStart}
+                                    disabled={isLoading}
+                                    className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-primary/20 transition-all cursor-pointer text-lg disabled:opacity-50"
                                 >
-                                    Start Screening
+                                    {isLoading ? 'Starting...' : 'Start Screening'}
                                 </button>
                             </div>
                             <p className="text-xs text-background-dark/50 font-medium">

@@ -1,8 +1,8 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://bit-cavista.onrender.com';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://cardiotwin-jqrct.ondigitalocean.app';
 
 export interface StartSessionRequest {
     session_id: string;
-    user_phone: string;
+    user_id: string;
 }
 
 export interface ComponentScore {
@@ -68,11 +68,11 @@ export const api = {
         return res.json();
     },
 
-    async getScore(sessionId: string): Promise<ScoreResponse> {
+    async getScore(sessionId: string): Promise<any> {
         const res = await fetch(`${API_BASE_URL}/api/score/${sessionId}`);
         if (!res.ok) throw new Error('Failed to fetch score');
         const data = await res.json();
-        if (data.status === 'error' || data.error || !data.components) {
+        if (data.status === 'error' || data.error) {
             throw new Error(data.message || 'Invalid score data format');
         }
         return data;

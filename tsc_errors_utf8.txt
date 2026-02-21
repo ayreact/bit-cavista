@@ -1,0 +1,3 @@
+﻿src/pages/DashboardPage.tsx(33,12): error TS6133: 'liveHistory' is declared but its value is never read.
+src/pages/DashboardPage.tsx(34,12): error TS6133: 'prediction' is declared but its value is never read.
+src/pages/DashboardPage.tsx(34,50): error TS2304: Cannot find name 'PredictionResponse'.
