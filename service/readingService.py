@@ -2,10 +2,8 @@ from fastapi import HTTPException, status
 from model import dataModel
 from dtos import readingsDto
 from config import settings
-import httpx
 
 CALIBRATION_THRESHOLD = settings.CALIBRATION_THRESHOLD
-AI_SERVICE_URL = settings.AI_SERVICE_URL
 
 ZONE_THRESHOLDS = [
     (70, "GREEN", "Thriving", "🟢"),
@@ -25,7 +23,9 @@ def process_reading(data: readingsDto.BiometricReadingRequest, db):
         spo2=data.spo2,
         temperature=data.temperature,
         timestamp=data.timestamp,
-        session_id=data.session_id
+        session_id=data.session_id,
+        components=data.components,
+        baseline = data.baseline
     )
     db.add(biometric_reading)
     db.commit()
@@ -108,44 +108,3 @@ def get_all_scores(session_id: str, db):
     ]
 
 
-def predict(data: readingsDto.PredictionsRequest, db):
-    """What-if risk projection - calls external AI service."""
-    readings_count = get_session_readings_count(data.session_id, db)
-    if readings_count < CALIBRATION_THRESHOLD:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not enough readings for prediction")
-
-    latest_reading = db.query(dataModel.BiometricReading).filter(
-        dataModel.BiometricReading.session_id == data.session_id
-    ).order_by(dataModel.BiometricReading.id.desc()).first()
-
-    ai_payload = {
-        "session_id": data.session_id,
-        "days": data.days,
-        "latest_reading": {
-            "bpm": latest_reading.bpm,
-            "hrv": latest_reading.hrv,
-            "spo2": latest_reading.spo2,
-            "temperature": latest_reading.temperature
-        }
-    }
-
-    try:
-        with httpx.Client(timeout=30.0) as client:
-            response = client.post(f"{AI_SERVICE_URL}/api/predict", json=ai_payload)
-            response.raise_for_status()
-            ai_response = response.json()
-            
-            return readingsDto.PredictionsResponse(
-                current_score=ai_response.get("current_score"),
-                projected_score=ai_response.get("projected_score"),
-                projected_resting_hr_increase_bpm=ai_response.get("projected_resting_hr_increase_bpm"),
-                current_risk_category=ai_response.get("current_risk_category"),
-                projected_risk_category=ai_response.get("projected_risk_category"),
-                disclaimer=ai_response.get("disclaimer", "Statistical projection only. Not a medical diagnosis.")
-            )
-    except httpx.TimeoutException:
-        raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail="AI service timeout")
-    except httpx.HTTPStatusError as e:
-        raise HTTPException(status_code=e.response.status_code, detail="AI service error")
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="AI service unavailable")

@@ -26,3 +26,9 @@ def start_session(data: sessionDto.SessionStartRequest, db):
         status="session_started",
         session_id=new_session.session_id
     )
+    
+def fetch_session(session_id,db):
+    existing_session = db.query(dataModel.Session).filter(
+        dataModel.Session.session_id == session_id
+    ).first()
+    return existing_session

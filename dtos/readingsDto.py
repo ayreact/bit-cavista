@@ -31,6 +31,11 @@ class BiometricReadingRequest(BaseModel):
     baseline: BaselineData      # Required from hardware
 
 class PredictionsRequest(BaseModel):
+    bpm: float
+    hrv: float
+    spo2: float
+    temperature: float
+    timestamp: int
     session_id: str
     days: int
 
@@ -40,6 +45,16 @@ class CalibratingReadingResponse(BaseModel):
     readings_collected: int
     readings_needed: int
     alert: bool = False
+    
+# -----------------------------
+# Request Model
+# -----------------------------
+
+class MessageRequest(BaseModel):
+    to_phone: str        # Format: +1234567890
+    message: str
+    channel: str         # "sms" or "whatsapp"
+
 
 class ScoredReadingResponse(BaseModel):
     status: str = "scored"
@@ -51,11 +66,3 @@ class ScoredReadingResponse(BaseModel):
     nudge_sent: bool = False
     components: ComponentsData
     baseline: BaselineData
-
-class PredictionsResponse(BaseModel):
-    current_score: float
-    projected_score: float
-    projected_resting_hr_increase_bpm: float
-    current_risk_category: str
-    projected_risk_category: str
-    disclaimer: str = "Statistical projection only. Not a medical diagnosis."
