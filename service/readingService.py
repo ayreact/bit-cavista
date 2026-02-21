@@ -13,7 +13,7 @@ def get_readings_from_hardware(data,db):
     db.commit()
     db.refresh(biometric_reading)
     
-    return readingsDto.CalibratingReadingResponse(status="calibrating", readings_collected=get_readings_collected(db), readings_needed=get_readings_needed(db), alert=false)
+    return readingsDto.CalibratingReadingResponse(status="calibrating", readings_collected=get_readings_collected(db), readings_needed=get_readings_needed(db), alert=False)
 
 
 def get_readings_collected(db):

@@ -24,4 +24,4 @@ def get_history_readings(session_id, db:Session = Depends(database.getDB)):
 
 @reading_router.post('/api/predict')
 def get_predictions(data: readingsDto.PredictionsRequest, db: Session = Depends(database.getDB)):
-    return readingService.predict(data,db);
+    return readingService.predict(data,db)
