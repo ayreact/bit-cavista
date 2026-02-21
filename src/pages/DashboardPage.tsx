@@ -1,24 +1,107 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Activity, Bell, Heart, ThermometerSun, Wind, BrainCircuit, Camera, ArrowLeftRight } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/dashboard/Sidebar';
-import PatientsView from '../components/dashboard/PatientsView';
-import AlertsView from '../components/dashboard/AlertsView';
-import { mockPatients, systemStatus } from '../data/mockData';
-import type { Patient } from '../data/mockData';
+import { api } from '../services/api';
+import type { PredictionResponse } from '../services/api';
+
+export interface Vitals {
+    heartRate: number;
+    hrv: number;
+    spO2: number;
+    skinTemp: number;
+    score: number;
+    trend: 'Improving' | 'Stable' | 'Declining';
+}
 
 export default function DashboardPage() {
-    const [activeView, setActiveView] = useState<'overview' | 'patients' | 'alerts' | 'settings'>('overview');
-    const [selectedPatientId, setSelectedPatientId] = useState<string | null>(mockPatients[0].id);
+    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
+    const sessionId = searchParams.get('session_id');
 
-    const currentPatient = mockPatients.find(p => p.id === selectedPatientId) || mockPatients[0];
-    const { currentVitals, history, riskForecast } = currentPatient;
+    const [activeView, setActiveView] = useState<'overview' | 'settings'>('overview');
 
-    const handleSelectPatient = (patient: Patient) => {
-        setSelectedPatientId(patient.id);
-        setActiveView('overview');
+    const defaultVitals: Vitals = {
+        heartRate: 0,
+        hrv: 0,
+        spO2: 100,
+        skinTemp: 36.5,
+        score: 0,
+        trend: 'Stable'
     };
+
+    const [liveVitals, setLiveVitals] = useState<Vitals>(defaultVitals);
+    const [liveHistory, setLiveHistory] = useState<{ time: string, score: number }[]>([]);
+    const [prediction, setPrediction] = useState<PredictionResponse | null>(null);
+
+    // Initial load check
+    useEffect(() => {
+        if (!sessionId) {
+            navigate('/');
+        }
+    }, [sessionId, navigate]);
+
+
+    // Polling Score API
+    useEffect(() => {
+        if (activeView !== 'overview' || !sessionId) return;
+
+        const pollScore = async () => {
+            try {
+                const data = await api.getScore(sessionId);
+                setLiveVitals(prev => ({
+                    ...prev,
+                    heartRate: data.components.heart_rate.value,
+                    hrv: data.components.hrv.value,
+                    spO2: data.components.spo2.value,
+                    skinTemp: data.components.temperature.value,
+                    score: Math.round(data.score),
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    trend: data.zone_label as any,
+                }));
+            } catch (err) {
+                console.error("Failed to poll score", err);
+            }
+        };
+
+        const interval = setInterval(pollScore, 2000);
+        pollScore(); // Initial fetch
+        return () => clearInterval(interval);
+    }, [activeView, sessionId]);
+
+    // Fetch History and Prediction when component mounts or view changes
+    useEffect(() => {
+        if (activeView !== 'overview' || !sessionId) return;
+
+        const fetchDetails = async () => {
+            try {
+                const [histData, predData] = await Promise.all([
+                    api.getHistory(sessionId),
+                    api.getPrediction({ session_id: sessionId, days: 90 })
+                ]);
+
+                // Map history format
+                const mappedHistory = histData.map(h => {
+                    const date = new Date(h.timestamp);
+                    return {
+                        time: `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`,
+                        score: h.score
+                    };
+                });
+                if (mappedHistory.length > 0) {
+                    setLiveHistory(mappedHistory);
+                }
+
+                setPrediction(predData);
+
+            } catch (err) {
+                console.error("Failed to fetch detailed data", err);
+            }
+        };
+
+        fetchDetails();
+    }, [activeView, sessionId]);
 
     return (
         <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen font-display flex flex-col">
@@ -45,7 +128,7 @@ export default function DashboardPage() {
                         <div className="h-8 w-[1px] bg-slate-700"></div>
                         <div className="flex items-center gap-3">
                             <button
-                                onClick={() => setActiveView('alerts')}
+                                onClick={() => setActiveView('settings')}
                                 className="p-2 hover:bg-primary/10 rounded-lg transition-colors text-slate-400 hover:text-primary relative"
                             >
                                 <Bell className="w-5 h-5" />
@@ -72,15 +155,12 @@ export default function DashboardPage() {
                             <div className="flex items-end justify-between mb-8">
                                 <div>
                                     <h2 className="text-3xl font-bold flex items-center gap-3">
-                                        {currentPatient.name}
-                                        <span className={`text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wider ${currentPatient.status === 'Critical' ? 'bg-rose-500/20 text-rose-500' :
-                                            currentPatient.status === 'Stable' ? 'bg-emerald-500/20 text-emerald-500' :
-                                                'bg-slate-500/20 text-slate-400'
-                                            }`}>
-                                            {currentPatient.status}
+                                        CardioTwin User
+                                        <span className="text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wider bg-emerald-500/20 text-emerald-500">
+                                            Active
                                         </span>
                                     </h2>
-                                    <p className="text-slate-400 mt-1">ID: {currentPatient.id} • {currentPatient.condition} • {currentPatient.roomNumber}</p>
+                                    <p className="text-slate-400 mt-1">Session: {sessionId} • General Monitoring</p>
                                 </div>
                                 <button className="bg-slate-800 hover:bg-slate-700 transition-colors px-4 py-2 rounded-lg text-sm font-semibold border border-primary/20">
                                     Generate Report
@@ -96,10 +176,10 @@ export default function DashboardPage() {
                                         <div className="absolute inset-0 bg-primary/5 opacity-20 pointer-events-none"></div>
 
                                         <div className="relative w-64 h-64 rounded-full border-[12px] border-slate-800 flex items-center justify-center shadow-[0_0_40px_rgba(var(--color-primary),0.1)]">
-                                            <div className="absolute inset-0 rounded-full border-[12px] border-primary border-t-transparent -rotate-45 transition-transform duration-1000 ease-in-out" style={{ transform: `rotate(${(currentVitals.score / 100) * 360 - 225}deg)` }}></div>
+                                            <div className="absolute inset-0 rounded-full border-[12px] border-primary border-t-transparent -rotate-45 transition-transform duration-1000 ease-in-out" style={{ transform: `rotate(${(liveVitals.score / 100) * 360 - 225}deg)` }}></div>
                                             <div className="text-center">
-                                                <span className="text-7xl font-black text-white tracking-tighter">{currentVitals.score}</span>
-                                                <p className="text-primary font-bold text-lg uppercase tracking-widest mt-2">{currentVitals.trend}</p>
+                                                <span className="text-7xl font-black text-white tracking-tighter">{liveVitals.score}</span>
+                                                <p className="text-primary font-bold text-lg uppercase tracking-widest mt-2">{liveVitals.trend}</p>
                                             </div>
                                         </div>
 
@@ -110,7 +190,7 @@ export default function DashboardPage() {
                                             </div>
                                             <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg">
                                                 <p className="text-sm leading-relaxed text-slate-200">
-                                                    {currentVitals.score > 80
+                                                    {liveVitals.score > 80
                                                         ? "Current biometric alignment suggests peak cardiovascular recovery. Vitals are stabilizing well above baseline."
                                                         : "Warning indicators present. Slight arrhythmias observed during sleep cycle. Continuous monitoring strongly advised."
                                                     }
@@ -132,11 +212,11 @@ export default function DashboardPage() {
                                         </div>
                                         <h3 className="text-slate-400 text-sm font-medium">Heart Rate</h3>
                                         <div className="flex items-baseline gap-2 mt-1">
-                                            <span className="text-4xl font-bold text-white tabular-nums">{currentVitals.heartRate}</span>
+                                            <span className="text-4xl font-bold text-white tabular-nums">{liveVitals.heartRate}</span>
                                             <span className="text-slate-500 text-lg">BPM</span>
                                         </div>
                                         <div className="mt-4 h-12 w-full flex items-end gap-1">
-                                            {history.slice(-12).map((h, i) => (
+                                            {liveHistory.slice(-12).map((h, i) => (
                                                 <div key={i} className="flex-1 bg-rose-500/40 rounded-t-sm" style={{ height: `${(h.score / 100) * 100}%` }}></div>
                                             ))}
                                         </div>
@@ -152,11 +232,11 @@ export default function DashboardPage() {
                                         </div>
                                         <h3 className="text-slate-400 text-sm font-medium">HRV (Stress)</h3>
                                         <div className="flex items-baseline gap-2 mt-1">
-                                            <span className="text-4xl font-bold text-white tabular-nums">{currentVitals.hrv}</span>
+                                            <span className="text-4xl font-bold text-white tabular-nums">{liveVitals.hrv}</span>
                                             <span className="text-slate-500 text-lg">ms</span>
                                         </div>
                                         <div className="mt-4 h-12 w-full flex items-end gap-1">
-                                            {history.slice(-12).reverse().map((h, i) => (
+                                            {liveHistory.slice(-12).reverse().map((h, i) => (
                                                 <div key={i} className="flex-1 bg-blue-500/40 rounded-t-sm" style={{ height: `${((100 - h.score) / 100) * 100}%` }}></div>
                                             ))}
                                         </div>
@@ -172,13 +252,13 @@ export default function DashboardPage() {
                                         </div>
                                         <h3 className="text-slate-400 text-sm font-medium">SpO2</h3>
                                         <div className="flex items-baseline gap-2 mt-1">
-                                            <span className="text-4xl font-bold text-white tabular-nums">{currentVitals.spO2}</span>
+                                            <span className="text-4xl font-bold text-white tabular-nums">{liveVitals.spO2}</span>
                                             <span className="text-slate-500 text-lg">%</span>
                                         </div>
                                         <div className="mt-4 flex items-center justify-center h-12">
                                             <div className="w-full px-2">
                                                 <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
-                                                    <div className="h-full bg-cyan-500 transition-all duration-1000" style={{ width: `${currentVitals.spO2}%` }}></div>
+                                                    <div className="h-full bg-cyan-500 transition-all duration-1000" style={{ width: `${liveVitals.spO2}%` }}></div>
                                                 </div>
                                             </div>
                                         </div>
@@ -194,7 +274,7 @@ export default function DashboardPage() {
                                         </div>
                                         <h3 className="text-slate-400 text-sm font-medium">Skin Temp</h3>
                                         <div className="flex items-baseline gap-2 mt-1">
-                                            <span className="text-4xl font-bold text-white tabular-nums">{currentVitals.skinTemp}</span>
+                                            <span className="text-4xl font-bold text-white tabular-nums">{liveVitals.skinTemp}</span>
                                             <span className="text-slate-500 text-lg">°C</span>
                                         </div>
                                         <div className="mt-4 flex items-center gap-2 h-12">
@@ -202,7 +282,7 @@ export default function DashboardPage() {
                                             <div className="flex-1 h-1.5 bg-slate-800 rounded-full relative">
                                                 <div
                                                     className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-orange-500 rounded-full border-2 border-background-dark shadow-[0_0_10px_rgba(249,115,22,0.5)] transition-all duration-1000"
-                                                    style={{ left: `${((currentVitals.skinTemp - 35) / (40 - 35)) * 100}%` }}
+                                                    style={{ left: `${((liveVitals.skinTemp - 35) / (40 - 35)) * 100}%` }}
                                                 ></div>
                                             </div>
                                             <span className="text-xs text-slate-500 font-mono">40.0°C</span>
@@ -226,7 +306,7 @@ export default function DashboardPage() {
 
                                         <div className="w-full flex-1 min-h-[300px]">
                                             <ResponsiveContainer width="100%" height="100%">
-                                                <AreaChart data={history} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                                                <AreaChart data={liveHistory} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                                                     <defs>
                                                         <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
                                                             <stop offset="5%" stopColor="rgb(var(--color-primary))" stopOpacity={0.8} />
@@ -285,11 +365,28 @@ export default function DashboardPage() {
                                                 <h4 className="text-sm font-bold text-slate-300 mb-1">AI 90-Day Event Risk</h4>
                                                 <div className="flex items-center gap-4 mt-3">
                                                     <div className="flex-1">
-                                                        <p className="text-4xl font-black text-primary drop-shadow-[0_0_8px_rgba(var(--color-primary),0.5)] tabular-nums">{riskForecast}%</p>
+                                                        <p className="text-4xl font-black text-primary drop-shadow-[0_0_8px_rgba(var(--color-primary),0.5)] tabular-nums">
+                                                            {prediction ? prediction.projected_score.toFixed(1) : '...'}%
+                                                        </p>
                                                     </div>
                                                     <div className="flex flex-col items-end">
-                                                        <span className="text-xs font-bold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded border border-emerald-400/20">↓ 1.2% Improvement</span>
-                                                        <span className="text-[10px] text-slate-500 mt-1 text-right">Based on simulation</span>
+                                                        {prediction ? (
+                                                            <>
+                                                                <span className={`text-xs font-bold px-2 py-1 rounded border ${prediction.projected_score > prediction.current_score
+                                                                    ? 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20'
+                                                                    : 'text-rose-400 bg-rose-400/10 border-rose-400/20'
+                                                                    }`}>
+                                                                    {prediction.projected_score > prediction.current_score ? '↑' : '↓'} {Math.abs(prediction.projected_score - prediction.current_score).toFixed(1)}% Change
+                                                                </span>
+                                                                <span className="text-[10px] text-slate-500 mt-1 text-right">{prediction.projected_risk_category}</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <span className="text-xs font-bold text-slate-400 bg-slate-400/10 px-2 py-1 rounded border border-slate-400/20">Calculating...</span>
+                                                                <span className="text-[10px] text-slate-500 mt-1 text-right">Based on simulation</span>
+                                                            </>
+                                                        )}
+
                                                     </div>
                                                 </div>
                                             </div>
@@ -311,21 +408,6 @@ export default function DashboardPage() {
                         </div>
                     )}
 
-                    {activeView === 'patients' && (
-                        <div className="h-full max-w-7xl mx-auto">
-                            <PatientsView
-                                onSelectPatient={handleSelectPatient}
-                                selectedPatientId={selectedPatientId}
-                            />
-                        </div>
-                    )}
-
-                    {activeView === 'alerts' && (
-                        <div className="h-full max-w-7xl mx-auto">
-                            <AlertsView />
-                        </div>
-                    )}
-
                     {activeView === 'settings' && (
                         <div className="h-full flex items-center justify-center text-slate-500 max-w-7xl mx-auto">
                             <div className="text-center">
@@ -342,8 +424,8 @@ export default function DashboardPage() {
                 <div className="flex justify-between items-center text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
                     <div>© {new Date().getFullYear()} CardioTwin Medical Systems.</div>
                     <div className="flex gap-4">
-                        <span>Engine: {systemStatus.engineVersion}</span>
-                        <span>Uptime: {systemStatus.uptime}</span>
+                        <span>Engine: v2.4.1</span>
+                        <span>Uptime: 99.9%</span>
                     </div>
                 </div>
             </footer>

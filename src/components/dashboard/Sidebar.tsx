@@ -1,16 +1,14 @@
-import { Users, Bell, Settings, LayoutDashboard, LogOut } from 'lucide-react';
+import { Settings, LayoutDashboard, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface SidebarProps {
-    activeView: 'overview' | 'patients' | 'alerts' | 'settings';
-    setActiveView: (view: 'overview' | 'patients' | 'alerts' | 'settings') => void;
+    activeView: 'overview' | 'settings';
+    setActiveView: (view: 'overview' | 'settings') => void;
 }
 
 export default function Sidebar({ activeView, setActiveView }: SidebarProps) {
     const navItems = [
         { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-        { id: 'patients', label: 'Patients', icon: Users },
-        { id: 'alerts', label: 'Alerts', icon: Bell },
         { id: 'settings', label: 'Settings', icon: Settings },
     ] as const;
 
