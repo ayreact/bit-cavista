@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://cardiotwin.azurewebsites.net';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://bit-cavista.onrender.com';
 
 export interface StartSessionRequest {
     session_id: string;
@@ -71,13 +71,21 @@ export const api = {
     async getScore(sessionId: string): Promise<ScoreResponse> {
         const res = await fetch(`${API_BASE_URL}/api/score/${sessionId}`);
         if (!res.ok) throw new Error('Failed to fetch score');
-        return res.json();
+        const data = await res.json();
+        if (data.status === 'error' || data.error || !data.components) {
+            throw new Error(data.message || 'Invalid score data format');
+        }
+        return data;
     },
 
     async getHistory(sessionId: string): Promise<HistoryEntry[]> {
         const res = await fetch(`${API_BASE_URL}/api/history/${sessionId}`);
         if (!res.ok) throw new Error('Failed to fetch history');
-        return res.json();
+        const data = await res.json();
+        if (data.status === 'error' || data.error || !Array.isArray(data)) {
+            throw new Error(data.message || 'Invalid history data format');
+        }
+        return data;
     },
 
     async getPrediction(data: PredictionRequest): Promise<PredictionResponse> {

@@ -37,7 +37,7 @@ export default function LandingPage() {
                                         />
                                     </div>
                                     <button
-                                        onClick={() => navigate('/dashboard')}
+                                        onClick={() => navigate('/dashboard?session_id=DEMO_SESSION_123')}
                                         className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer shadow-lg shadow-primary/20"
                                     >
                                         Start Screening
