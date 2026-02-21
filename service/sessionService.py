@@ -1,16 +1,13 @@
-from fastapi import HTTPException, status
 from model import dataModel
 from dtos import sessionDto
 
 def start_session(data: sessionDto.SessionStartRequest, db):
     """Start a new measurement session."""
-    # Check if session already exists
     existing_session = db.query(dataModel.Session).filter(
         dataModel.Session.session_id == data.session_id
     ).first()
     
     if existing_session:
-        # Return existing session
         return sessionDto.SessionStartResponse(
             status="session_started",
             session_id=data.session_id

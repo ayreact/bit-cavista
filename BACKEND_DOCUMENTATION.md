@@ -12,127 +12,55 @@
 -   [Error Handling](#error-handling)
 -   [Testing](#testing)
 
----
-
 ## Overview
 
-CardioTwin is a FastAPI-based backend application that processes real-time biometric data from ESP32 devices, calculates cardiovascular health scores, and provides predictive health insights.
+CardioTwin is a FastAPI-based backend that processes real-time biometric data from ESP32 devices, calculates cardiovascular health scores, and provides predictive health insights.
 
-**Tech Stack:**
+**Tech Stack:** FastAPI, Python 3.8+, SQLite/PostgreSQL, SQLAlchemy
 
--   **Framework:** FastAPI
--   **Language:** Python 3.8+
--   **Database:** SQLite/PostgreSQL (configurable)
--   **ORM:** SQLAlchemy
--   **Hosting:** Azure Web Services
-
-**Base URL:**
-
-```
-https://cardiotwin.azurewebsites.net
-```
-
----
+**Base URL:** `https://cardiotwin.azurewebsites.net`
 
 ## Project Structure
 
 ```
 fastapi_project/
 ├── app/
-│   ├── __init__.py
 │   ├── main.py              # Application entry point
 │   ├── config.py            # Configuration settings
 │   ├── models/              # Database models
 │   ├── schemas/             # Pydantic schemas
-│   ├── routers/
-│   │   ├── session.py       # Session management endpoints
-│   │   ├── reading.py       # Biometric reading endpoints
-│   │   ├── score.py         # Score retrieval endpoints
-│   │   └── predict.py       # Prediction endpoints
-│   ├── services/
-│   │   ├── scoring.py       # Health score calculation
-│   │   ├── baseline.py      # Baseline calibration
-│   │   └── prediction.py    # Risk projection logic
+│   ├── routers/             # API endpoints (session, reading, score, predict)
+│   ├── services/            # Business logic (scoring, baseline, prediction)
 │   └── utils/               # Utility functions
-├── tests/                   # Test files
-├── docs/                    # Documentation
-├── requirements.txt         # Dependencies
+├── tests/
+├── requirements.txt
 └── README.md
 ```
 
----
-
 ## Installation
 
-### Prerequisites
-
--   Python 3.8 or higher
--   pip (Python package manager)
--   Virtual environment (recommended)
-
-### Steps
-
-1. **Clone the repository:**
-
-    ```bash
-    git clone <repository-url>
-    cd fastapi_project
-    ```
-
-2. **Create virtual environment:**
-
-    ```bash
-    python -m venv venv
-    ```
-
-3. **Activate virtual environment:**
-
-    - Windows:
-        ```bash
-        venv\Scripts\activate
-        ```
-    - Linux/Mac:
-        ```bash
-        source venv/bin/activate
-        ```
-
-4. **Install dependencies:**
-
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-5. **Run the application:**
-    ```bash
-    uvicorn app.main:app --reload
-    ```
-
----
+```bash
+git clone <repository-url>
+cd fastapi_project
+python -m venv venv
+venv\Scripts\activate          # Windows
+# source venv/bin/activate     # Linux/Mac
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
 
 ## Configuration
 
-Environment variables can be set in a `.env` file:
+Set in `.env` file:
 
 | Variable               | Description                  | Default              |
 | ---------------------- | ---------------------------- | -------------------- |
 | `DATABASE_URL`         | Database connection string   | `sqlite:///./app.db` |
 | `DEBUG`                | Enable debug mode            | `False`              |
-| `HOST`                 | Server host                  | `0.0.0.0`            |
-| `PORT`                 | Server port                  | `8000`               |
 | `CALIBRATION_READINGS` | Readings needed for baseline | `15`                 |
 | `READING_INTERVAL_MS`  | Expected reading interval    | `2000`               |
 
----
-
 ## API Endpoints
-
-### Base URL
-
-```
-https://cardiotwin.azurewebsites.net
-```
-
-### Endpoints Overview
 
 | Method | Endpoint                    | Description                         |
 | ------ | --------------------------- | ----------------------------------- |
@@ -142,126 +70,64 @@ https://cardiotwin.azurewebsites.net
 | `GET`  | `/api/history/{session_id}` | Get score history for charts        |
 | `POST` | `/api/predict`              | Get risk projection                 |
 
----
-
 ## Biometric Scoring System
 
 ### Health Zones
 
-| Zone   | Label           | Emoji | Score Range |
-| ------ | --------------- | ----- | ----------- |
-| GREEN  | Thriving        | 🟢    | 70-100      |
-| YELLOW | Caution         | 🟡    | 50-69       |
-| ORANGE | Elevated Risk   | 🟠    | 30-49       |
-| RED    | Critical Strain | 🔴    | 0-29        |
+| Zone      | Label           | Score Range |
+| --------- | --------------- | ----------- |
+| 🟢 GREEN  | Thriving        | 70-100      |
+| 🟡 YELLOW | Caution         | 50-69       |
+| 🟠 ORANGE | Elevated Risk   | 30-49       |
+| 🔴 RED    | Critical Strain | 0-29        |
 
 ### Measured Parameters
 
-| Parameter        | Unit      | Normal Range |
-| ---------------- | --------- | ------------ |
-| Heart Rate (BPM) | beats/min | 60-100       |
-| HRV              | ms        | 20-70        |
-| SpO2             | %         | 95-100       |
-| Temperature      | °C        | 36.1-37.2    |
+| Parameter   | Unit | Normal Range |
+| ----------- | ---- | ------------ |
+| Heart Rate  | bpm  | 60-100       |
+| HRV         | ms   | 20-70        |
+| SpO2        | %    | 95-100       |
+| Temperature | °C   | 36.1-37.2    |
 
-### Calibration Process
+### Calibration
 
--   **Readings Required:** 15 readings
--   **Reading Interval:** Every 2 seconds
--   **Calibration Time:** ~30 seconds
-
-During calibration, the system collects baseline measurements to establish:
-
--   Resting BPM
--   Resting HRV
--   Normal SpO2
--   Normal Temperature
-
----
+-   **Readings Required:** 15 readings @ 2s intervals (~30 seconds)
+-   Establishes baseline for resting BPM, HRV, SpO2, and temperature
 
 ## Database
 
-### Migrations
-
-Run database migrations:
-
 ```bash
-alembic upgrade head
+alembic upgrade head                              # Run migrations
+alembic revision --autogenerate -m "message"      # Create migration
 ```
-
-Create new migration:
-
-```bash
-alembic revision --autogenerate -m "migration message"
-```
-
----
 
 ## Error Handling
 
-### Standard Error Response
-
 ```json
-{
-    "detail": "Error message",
-    "status_code": 400
-}
+{ "detail": "Error message", "status_code": 400 }
 ```
-
-### HTTP Status Codes
 
 | Code  | Description           |
 | ----- | --------------------- |
 | `200` | Success               |
 | `201` | Created               |
 | `400` | Bad Request           |
-| `401` | Unauthorized          |
-| `403` | Forbidden             |
 | `404` | Not Found             |
 | `422` | Validation Error      |
 | `500` | Internal Server Error |
 
----
-
 ## Testing
 
-### Run all tests:
-
 ```bash
-pytest
+pytest                          # Run all tests
+pytest --cov=app tests/         # Run with coverage
+pytest tests/test_main.py       # Run specific file
 ```
-
-### Run with coverage:
-
-```bash
-pytest --cov=app tests/
-```
-
-### Run specific test file:
-
-```bash
-pytest tests/test_main.py
-```
-
----
 
 ## Development
 
-### Code Formatting
-
 ```bash
-black app/
-isort app/
+black app/ && isort app/        # Format code
+flake8 app/                     # Lint code
 ```
-
-### Linting
-
-```bash
-flake8 app/
-```
-
----
-
-## Contact
-
-For questions or issues, please open an issue in the repository.

@@ -7,12 +7,18 @@ import httpx
 CALIBRATION_THRESHOLD = settings.CALIBRATION_THRESHOLD
 AI_SERVICE_URL = settings.AI_SERVICE_URL
 
+ZONE_THRESHOLDS = [
+    (70, "GREEN", "Thriving", "🟢"),
+    (50, "YELLOW", "Caution", "🟡"),
+    (30, "ORANGE", "Elevated Risk", "🟠"),
+    (0, "RED", "Critical Strain", "🔴"),
+]
+
+COMPONENT_WEIGHTS = {'heart_rate': 0.30, 'hrv': 0.25, 'spo2': 0.30, 'temperature': 0.15}
+
+
 def process_reading(data: readingsDto.BiometricReadingRequest, db):
-    """
-    Process incoming biometric reading from hardware.
-    Returns calibrating response until threshold reached, then scored response.
-    """
-    # Save the biometric reading
+    """Process incoming biometric reading from hardware."""
     biometric_reading = dataModel.BiometricReading(
         bpm=data.bpm,
         hrv=data.hrv,
@@ -25,10 +31,8 @@ def process_reading(data: readingsDto.BiometricReadingRequest, db):
     db.commit()
     db.refresh(biometric_reading)
     
-    # Get readings count for this session
     readings_collected = get_session_readings_count(data.session_id, db)
     
-    # Check if still calibrating
     if readings_collected < CALIBRATION_THRESHOLD:
         return readingsDto.CalibratingReadingResponse(
             status="calibrating",
@@ -37,13 +41,8 @@ def process_reading(data: readingsDto.BiometricReadingRequest, db):
             alert=False
         )
     
-    # Use hardware-provided components and baseline
-    components = data.components
-    baseline = data.baseline
-    
-    overall_score = calculate_overall_score(components)
+    overall_score = calculate_overall_score(data.components)
     zone, zone_label, zone_emoji = get_zone_info(overall_score)
-    alert = overall_score < 30
     
     return readingsDto.ScoredReadingResponse(
         status="scored",
@@ -51,10 +50,10 @@ def process_reading(data: readingsDto.BiometricReadingRequest, db):
         zone=zone,
         zone_label=zone_label,
         zone_emoji=zone_emoji,
-        alert=alert,
+        alert=overall_score < 30,
         nudge_sent=False,
-        components=components,
-        baseline=baseline
+        components=data.components,
+        baseline=data.baseline
     )
 
 
@@ -67,48 +66,19 @@ def get_session_readings_count(session_id: str, db) -> int:
 
 def calculate_overall_score(components: readingsDto.ComponentsData) -> float:
     """Weighted composite score from individual components."""
-    weights = {'heart_rate': 0.30, 'hrv': 0.25, 'spo2': 0.30, 'temperature': 0.15}
     return (
-        components.heart_rate.score * weights['heart_rate'] +
-        components.hrv.score * weights['hrv'] +
-        components.spo2.score * weights['spo2'] +
-        components.temperature.score * weights['temperature']
+        components.heart_rate.score * COMPONENT_WEIGHTS['heart_rate'] +
+        components.hrv.score * COMPONENT_WEIGHTS['hrv'] +
+        components.spo2.score * COMPONENT_WEIGHTS['spo2'] +
+        components.temperature.score * COMPONENT_WEIGHTS['temperature']
     )
 
 
 def get_zone_info(score: float) -> tuple:
     """Return zone, label, and emoji based on score."""
-    if score >= 70:
-        return "GREEN", "Thriving", "🟢"
-    elif score >= 50:
-        return "YELLOW", "Caution", "🟡"
-    elif score >= 30:
-        return "ORANGE", "Elevated Risk", "🟠"
-    return "RED", "Critical Strain", "🔴"
-
-
-def get_latest_score(session_id: str, db):
-    """Returns the latest calculated score for a session."""
-    latest_reading = (
-        db.query(dataModel.BiometricReading)
-        .filter(dataModel.BiometricReading.session_id == session_id)
-        .order_by(dataModel.BiometricReading.id.desc())
-        .first()
-    )
-
-    if not latest_reading:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No readings found for this session")
-
-    readings_count = get_session_readings_count(session_id, db)
-    if readings_count < CALIBRATION_THRESHOLD:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Still calibrating. {readings_count}/{CALIBRATION_THRESHOLD} readings collected.")
-
-    # For GET endpoint, we need stored component/baseline data
-    # Return basic score info from stored readings
-    raise HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST, 
-        detail="Use POST /api/reading endpoint with hardware data for scored responses"
-    )
+    for threshold, zone, label, emoji in ZONE_THRESHOLDS:
+        if score >= threshold:
+            return zone, label, emoji
 
 
 def get_all_scores(session_id: str, db):
@@ -126,16 +96,15 @@ def get_all_scores(session_id: str, db):
     if len(readings) < CALIBRATION_THRESHOLD:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Still calibrating. {len(readings)}/{CALIBRATION_THRESHOLD} readings collected.")
 
-    # Return raw readings data for charting
     return [
         {
-            "timestamp": reading.timestamp,
-            "bpm": reading.bpm,
-            "hrv": reading.hrv,
-            "spo2": reading.spo2,
-            "temperature": reading.temperature
+            "timestamp": r.timestamp,
+            "bpm": r.bpm,
+            "hrv": r.hrv,
+            "spo2": r.spo2,
+            "temperature": r.temperature
         }
-        for reading in readings
+        for r in readings
     ]
 
 
@@ -145,12 +114,10 @@ def predict(data: readingsDto.PredictionsRequest, db):
     if readings_count < CALIBRATION_THRESHOLD:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not enough readings for prediction")
 
-    # Get latest reading
     latest_reading = db.query(dataModel.BiometricReading).filter(
         dataModel.BiometricReading.session_id == data.session_id
     ).order_by(dataModel.BiometricReading.id.desc()).first()
 
-    # Prepare payload for AI service
     ai_payload = {
         "session_id": data.session_id,
         "days": data.days,
@@ -180,5 +147,5 @@ def predict(data: readingsDto.PredictionsRequest, db):
         raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail="AI service timeout")
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=e.response.status_code, detail="AI service error")
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=f"AI service unavailable: {str(e)}")
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="AI service unavailable")

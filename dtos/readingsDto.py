@@ -30,9 +30,6 @@ class ReadingRequest(BaseModel):
     components: ComponentsData  # Required from hardware
     baseline: BaselineData      # Required from hardware
 
-# Alias for backward compatibility
-BiometricReadingRequest = ReadingRequest
-
 class PredictionsRequest(BaseModel):
     session_id: str
     days: int
