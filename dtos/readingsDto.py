@@ -20,7 +20,7 @@ class BaselineData(BaseModel):
     normal_temp: float
 
 # Request DTOs
-class ReadingRequest(BaseModel):
+class BiometricReadingRequest(BaseModel):
     bpm: float
     hrv: float
     spo2: float
