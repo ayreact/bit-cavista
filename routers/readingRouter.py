@@ -41,10 +41,7 @@ def receive_biometric_reading(
 
 
 @router.get("/score/{session_id}")
-def get_latest_score(
-    session_id: str,
-    db: Session = Depends(get_db)
-):
+def get_latest_score(session_id: str):
     """
     Returns the latest score for frontend polling.
     """
@@ -99,6 +96,8 @@ def send_alert(request: readingsDto.MessageRequest):
 @router.post("/predict")
 def process_reading(request: ReadingRequest, db: Session = Depends(get_db)):
     result = ai.predict(request)
+    
+    print(f"ai result: {result}")
     
     if result.get("nudge_sent"):
         exisiting_session = sessionService.fetch_session(request.session_id,db)
