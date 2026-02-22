@@ -1,5 +1,6 @@
 import { Settings, LayoutDashboard, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 interface SidebarProps {
     activeView: 'overview' | 'settings';
@@ -7,9 +8,11 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeView, setActiveView }: SidebarProps) {
+    const { t } = useLanguage();
+
     const navItems = [
-        { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-        { id: 'settings', label: 'Settings', icon: Settings },
+        { id: 'overview', label: t('sidebar.overview'), icon: LayoutDashboard },
+        { id: 'settings', label: t('sidebar.settings'), icon: Settings },
     ] as const;
 
     return (
@@ -40,7 +43,7 @@ export default function Sidebar({ activeView, setActiveView }: SidebarProps) {
             <div className="p-6 border-t border-primary/10 bg-background-light/50">
                 <Link to="/" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-rose-500 hover:bg-rose-50 hover:shadow-sm transition-all font-medium border border-transparent hover:border-rose-100">
                     <LogOut className="w-5 h-5" />
-                    <span>Exit Dashboard</span>
+                    <span>{t('sidebar.exit')}</span>
                 </Link>
             </div>
         </aside>

@@ -1,11 +1,14 @@
-import { useState, useEffect, Suspense } from 'react';
-import { Activity, Bell, BrainCircuit } from 'lucide-react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import { Activity, Bell, BrainCircuit, Sparkles, Globe, Check } from 'lucide-react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/dashboard/Sidebar';
+import NudgePanel from '../components/dashboard/NudgePanel';
 import { api } from '../services/api';
+import type { NudgeResponse } from '../services/api';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment } from '@react-three/drei';
 import { HealthAvatar } from '../components/HealthAvatar';
+import { useLanguage, LANGUAGE_OPTIONS } from '../i18n/LanguageContext';
 
 export interface Vitals {
     heartRate: number;
@@ -20,6 +23,7 @@ export default function DashboardPage() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const sessionId = searchParams.get('session_id');
+    const { lang, setLang, t } = useLanguage();
 
     const [activeView, setActiveView] = useState<'overview' | 'settings'>('overview');
 
@@ -33,6 +37,9 @@ export default function DashboardPage() {
     };
 
     const [liveVitals, setLiveVitals] = useState<Vitals>(defaultVitals);
+    const [nudge, setNudge] = useState<NudgeResponse | null>(null);
+    const [showNudge, setShowNudge] = useState(false);
+    const [isLoadingNudge, setIsLoadingNudge] = useState(false);
 
     // Initial load check
     useEffect(() => {
@@ -91,6 +98,29 @@ export default function DashboardPage() {
         return () => clearInterval(interval);
     }, [activeView, sessionId]);
 
+    // On-demand nudge fetch
+    const fetchNudge = useCallback(async () => {
+        if (!sessionId) return;
+        setIsLoadingNudge(true);
+        try {
+            const data = await api.getNudge(sessionId);
+            console.log(`[CardioTwin] AI Nudge received:`, data.message);
+            setNudge(data);
+            setShowNudge(true);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(`[CardioTwin] Nudge API failed: ${message}. Using fallback nudge.`);
+            setNudge({
+                message: 'Remember to stay hydrated and take regular breaks for your heart health! 💚',
+                zone: 'GREEN',
+                zone_label: 'General Tip',
+                phone: null,
+            });
+            setShowNudge(true);
+        } finally {
+            setIsLoadingNudge(false);
+        }
+    }, [sessionId]);
 
 
     return (
@@ -113,7 +143,7 @@ export default function DashboardPage() {
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                             </span>
-                            <span className="text-xs font-bold uppercase tracking-wider text-primary">Live Status</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-primary">{t('dash.liveStatus')}</span>
                         </div>
                         <div className="h-8 w-[1px] bg-background-dark/10"></div>
                         <div className="flex items-center gap-3">
@@ -145,25 +175,35 @@ export default function DashboardPage() {
                             <div className="flex items-end justify-between shrink-0 mb-2">
                                 <div>
                                     <h2 className="text-3xl font-extrabold flex items-center gap-3 tracking-tight">
-                                        CardioTwin <span className="italic font-serif text-primary font-normal">Digital Twin</span>
+                                        CardioTwin <span className="italic font-serif text-primary font-normal">{t('dash.digitalTwin')}</span>
                                         {calibration.active ? (
                                             <span className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-orange-100 text-orange-600 border border-orange-200 shadow-sm animate-pulse">
-                                                Calibrating
+                                                {t('dash.calibrating')}
                                             </span>
                                         ) : (
                                             <span className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-emerald-100 text-emerald-600 border border-emerald-200 shadow-sm">
-                                                Live Monitoring
+                                                {t('dash.liveMonitoring')}
                                             </span>
                                         )}
                                     </h2>
-                                    <p className="text-background-dark/60 mt-1 font-medium">Session: {sessionId} • Real-time Hardware Sync</p>
+                                    <p className="text-background-dark/60 mt-1 font-medium">{t('dash.session')}: {sessionId} • {t('dash.realtimeSync')}</p>
                                 </div>
                                 {!calibration.active && (
-                                    <div className="text-right flex flex-col items-end">
-                                        <span className="text-xs uppercase font-bold text-background-dark/50 tracking-wider">Health Score</span>
-                                        <span className={`text-5xl font-black ${liveVitals.score >= 80 ? 'text-primary' : liveVitals.score >= 55 ? 'text-yellow-500' : liveVitals.score >= 30 ? 'text-orange-500' : 'text-rose-500'}`}>
-                                            {liveVitals.score}
-                                        </span>
+                                    <div className="flex items-center gap-4">
+                                        <button
+                                            onClick={fetchNudge}
+                                            disabled={isLoadingNudge}
+                                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-sm font-bold transition-all border border-primary/20 hover:border-primary/30 cursor-pointer disabled:opacity-50 shadow-sm hover:shadow-md"
+                                        >
+                                            <Sparkles className={`w-4 h-4 ${isLoadingNudge ? 'animate-spin' : ''}`} />
+                                            {isLoadingNudge ? t('dash.loading') : t('dash.getAiAdvice')}
+                                        </button>
+                                        <div className="text-right flex flex-col items-end">
+                                            <span className="text-xs uppercase font-bold text-background-dark/50 tracking-wider">{t('dash.healthScore')}</span>
+                                            <span className={`text-5xl font-black ${liveVitals.score >= 80 ? 'text-primary' : liveVitals.score >= 55 ? 'text-yellow-500' : liveVitals.score >= 30 ? 'text-orange-500' : 'text-rose-500'}`}>
+                                                {liveVitals.score}
+                                            </span>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -176,8 +216,8 @@ export default function DashboardPage() {
                                 {calibration.active ? (
                                     <div className="relative z-10 flex flex-col items-center max-w-md w-full p-8 text-center bg-white/80 backdrop-blur-md rounded-3xl border border-primary/20 shadow-xl">
                                         <Activity className="w-12 h-12 text-primary animate-bounce mb-6" />
-                                        <h3 className="text-2xl font-bold text-background-dark mb-2">Analyzing Baseline Metrics</h3>
-                                        <p className="text-background-dark/60 mb-8 font-medium">Gathering sensor data to establish a personalized cardiovascular baseline.</p>
+                                        <h3 className="text-2xl font-bold text-background-dark mb-2">{t('dash.analyzingBaseline')}</h3>
+                                        <p className="text-background-dark/60 mb-8 font-medium">{t('dash.gatheringSensor')}</p>
 
                                         <div className="w-full h-3 bg-background-light rounded-full overflow-hidden border border-background-dark/10">
                                             <div
@@ -186,14 +226,14 @@ export default function DashboardPage() {
                                             ></div>
                                         </div>
                                         <div className="flex justify-between w-full mt-3 text-xs font-bold text-background-dark/50 uppercase tracking-widest">
-                                            <span>Initializing</span>
+                                            <span>{t('dash.initializing')}</span>
                                             <span>{Math.round(calibration.progress * 100)}%</span>
                                         </div>
                                     </div>
                                 ) : (
-                                    <>
-                                        {/* 3D Body Render */}
-                                        <div className="relative w-full max-w-md h-full min-h-[700px] flex items-center justify-center z-10">
+                                    <div className="flex gap-4 w-full h-full min-h-[600px]">
+                                        {/* 3D Body Render — shifts left when panel is open */}
+                                        <div className={`relative h-full min-h-[700px] flex items-center justify-center z-10 transition-all duration-500 ease-in-out ${showNudge ? 'flex-[3]' : 'flex-1'}`}>
                                             <div className="absolute inset-0 translate-y-4 rounded-3xl overflow-hidden pointer-events-auto">
                                                 <Canvas shadows camera={{ position: [0, 1, 6], fov: 35 }}>
                                                     <Suspense fallback={null}>
@@ -216,45 +256,93 @@ export default function DashboardPage() {
                                                 </Canvas>
                                             </div>
 
-                                            {/* 3D model now includes the HTML labels internally */}
+                                            {/* Bottom Floating Info Panel */}
+                                            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl bg-white/90 backdrop-blur-xl p-5 rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.08)] border border-primary/20 flex items-center justify-between z-20">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="p-3 bg-primary/10 rounded-2xl border border-primary/20">
+                                                        <BrainCircuit className="w-6 h-6 text-primary" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-sm font-bold text-background-dark mb-0.5">{t('dash.analysisStatus')}</h4>
+                                                        <p className="text-xs text-background-dark/60 font-medium max-w-md">
+                                                            {liveVitals.score >= 80
+                                                                ? t('dash.statusOptimal')
+                                                                : liveVitals.score >= 55
+                                                                    ? t('dash.statusMild')
+                                                                    : t('dash.statusWarning')}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right pl-4 border-l border-background-dark/10">
+                                                    <span className="text-[10px] font-bold text-background-dark/40 uppercase tracking-widest block mb-1.5 w-max">{t('dash.activeZone')}</span>
+                                                    <span className={`px-4 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${liveVitals.score >= 80 ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : liveVitals.score >= 55 ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : liveVitals.score >= 30 ? 'bg-orange-100 text-orange-700 border-orange-200' : 'bg-rose-100 text-rose-700 border-rose-200'}`}>
+                                                        {liveVitals.trend || "Thriving"}
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        {/* Bottom Floating Info Panel */}
-                                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl bg-white/90 backdrop-blur-xl p-5 rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.08)] border border-primary/20 flex items-center justify-between z-20">
-                                            <div className="flex items-center gap-4">
-                                                <div className="p-3 bg-primary/10 rounded-2xl border border-primary/20">
-                                                    <BrainCircuit className="w-6 h-6 text-primary" />
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-sm font-bold text-background-dark mb-0.5">Real-time Analysis Status</h4>
-                                                    <p className="text-xs text-background-dark/60 font-medium max-w-md">
-                                                        {liveVitals.score >= 80
-                                                            ? "Biometric patterns indicate optimal recovery. No arrhythmias or stress triggers detected in current session."
-                                                            : liveVitals.score >= 55
-                                                                ? "Mild strain detected in current biomarkers. Monitor hydration and rest recommended."
-                                                                : "Warning levels reached. Immediate attention to cardiovascular state is advised."}
-                                                    </p>
-                                                </div>
+                                        {/* AI Advice Panel */}
+                                        {showNudge && nudge && (
+                                            <div className="flex-[2] min-w-[280px] max-w-[380px] transition-all duration-500 ease-in-out">
+                                                <NudgePanel
+                                                    nudge={nudge}
+                                                    isLoading={isLoadingNudge}
+                                                    onRefresh={fetchNudge}
+                                                    onClose={() => setShowNudge(false)}
+                                                />
                                             </div>
-                                            <div className="text-right pl-4 border-l border-background-dark/10">
-                                                <span className="text-[10px] font-bold text-background-dark/40 uppercase tracking-widest block mb-1.5 w-max">Active Zone</span>
-                                                <span className={`px-4 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${liveVitals.score >= 80 ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : liveVitals.score >= 55 ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : liveVitals.score >= 30 ? 'bg-orange-100 text-orange-700 border-orange-200' : 'bg-rose-100 text-rose-700 border-rose-200'}`}>
-                                                    {liveVitals.trend || "Thriving"}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                         </div>
                     )}
 
                     {activeView === 'settings' && (
-                        <div className="h-full flex items-center justify-center text-background-dark/50 max-w-7xl mx-auto">
-                            <div className="text-center">
-                                <Bell className="w-16 h-16 mx-auto mb-4 opacity-20" />
-                                <h2 className="text-xl font-bold text-background-dark/60">Settings Configuration</h2>
-                                <p className="mtn-2 text-sm font-medium">System configuration view coming soon.</p>
+                        <div className="max-w-2xl mx-auto py-8">
+                            <h2 className="text-3xl font-extrabold text-background-dark mb-8 tracking-tight">{t('settings.title')}</h2>
+
+                            {/* Language Settings Card */}
+                            <div className="bg-white rounded-3xl border border-primary/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+                                <div className="px-8 py-6 border-b border-background-light">
+                                    <div className="flex items-center gap-3 mb-1">
+                                        <Globe className="w-5 h-5 text-primary" />
+                                        <h3 className="text-lg font-bold text-background-dark">{t('settings.language')}</h3>
+                                    </div>
+                                    <p className="text-sm text-background-dark/60 font-medium ml-8">{t('settings.languageDesc')}</p>
+                                </div>
+
+                                <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {LANGUAGE_OPTIONS.map((option) => {
+                                        const isActive = lang === option.code;
+                                        return (
+                                            <button
+                                                key={option.code}
+                                                onClick={() => setLang(option.code)}
+                                                className={`relative flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer group ${isActive
+                                                        ? 'border-primary bg-primary/5 shadow-md shadow-primary/10'
+                                                        : 'border-background-dark/10 bg-white hover:border-primary/30 hover:bg-primary/[0.02] hover:shadow-sm'
+                                                    }`}
+                                            >
+                                                <span className="text-2xl">{option.flag}</span>
+                                                <div className="text-left">
+                                                    <div className={`font-bold text-sm ${isActive ? 'text-primary' : 'text-background-dark'}`}>
+                                                        {option.label}
+                                                    </div>
+                                                    <div className="text-xs text-background-dark/50 font-medium">
+                                                        {t(`lang.${option.code}`)}
+                                                    </div>
+                                                </div>
+                                                {isActive && (
+                                                    <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                                                        <Check className="w-3.5 h-3.5 text-white" />
+                                                    </div>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
                     )}

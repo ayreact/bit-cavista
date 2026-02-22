@@ -1,16 +1,12 @@
 import { useEffect, useState } from "react";
-import { api } from "../services/api"; const ZONE_COLORS: Record<string, string> = {
+import { api } from "../services/api";
+import { useLanguage } from "../i18n/LanguageContext";
+
+const ZONE_COLORS: Record<string, string> = {
     GREEN: "#22C55E",
     YELLOW: "#FACC15",
     ORANGE: "#F97316",
     RED: "#EF4444",
-};
-
-const ZONE_LABELS: Record<string, string> = {
-    GREEN: "Thriving",
-    YELLOW: "Mild Strain",
-    ORANGE: "Elevated Risk",
-    RED: "Critical Strain",
 };
 
 export default function DemoPage() {
@@ -18,6 +14,14 @@ export default function DemoPage() {
     const [displayScore, setDisplayScore] = useState(0);
     const [zone, setZone] = useState("GREEN");
     const [alert, setAlert] = useState(false);
+    const { t } = useLanguage();
+
+    const ZONE_LABELS: Record<string, string> = {
+        GREEN: t('demo.thriving'),
+        YELLOW: t('demo.mildStrain'),
+        ORANGE: t('demo.elevatedRisk'),
+        RED: t('demo.criticalStrain'),
+    };
 
     // Count up animation
     useEffect(() => {
@@ -49,7 +53,7 @@ export default function DemoPage() {
     }, []);
 
     const color = ZONE_COLORS[zone] || "#22C55E";
-    const label = ZONE_LABELS[zone] || "Thriving";
+    const label = ZONE_LABELS[zone] || t('demo.thriving');
 
     return (
         <div
@@ -62,7 +66,7 @@ export default function DemoPage() {
                     className="w-full text-center py-4 text-white text-2xl font-bold animate-pulse"
                     style={{ backgroundColor: "#EF4444" }}
                 >
-                    ⚠️ ALERT — Risk Detected! Check WhatsApp.
+                    {t('demo.alert')}
                 </div>
             )}
 
@@ -71,7 +75,7 @@ export default function DemoPage() {
                 CardioTwin AI
             </h1>
             <p className="text-slate-400 text-lg mb-12">
-                Your Heart's Early Warning System
+                {t('demo.subtitle')}
             </p>
 
             {/* Score Circle */}
@@ -91,7 +95,7 @@ export default function DemoPage() {
                 >
                     {displayScore}
                 </span>
-                <span className="text-slate-400 text-xl mt-2">CardioTwin Score</span>
+                <span className="text-slate-400 text-xl mt-2">{t('demo.scoreLabel')}</span>
             </div>
 
             {/* Zone Label */}
@@ -112,7 +116,7 @@ export default function DemoPage() {
 
             {/* Footer */}
             <p className="text-slate-600 text-sm mt-16">
-                Wellness screening tool only — not a medical diagnosis
+                {t('demo.disclaimer')}
             </p>
         </div>
     );

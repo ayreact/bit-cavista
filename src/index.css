@@ -18,3 +18,15 @@
     background: conic-gradient(from 180deg at 50% 50%, #21c45d 0deg, #122017 280deg);
   }
 }
+
+@keyframes nudgePanelIn {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

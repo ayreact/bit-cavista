@@ -2,25 +2,29 @@ import { Shield, Lock, Verified } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { api } from '../services/api';
+import { useLanguage } from '../i18n/LanguageContext';
 
 export default function LandingPage() {
     const navigate = useNavigate();
     const [phone, setPhone] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const { t } = useLanguage();
 
     const handleStart = async () => {
         if (!phone.trim()) {
-            alert('Please enter your WhatsApp number.');
+            alert(t('hero.enterPhone'));
             return;
         }
         setIsLoading(true);
         try {
             const sessionId = `session-${Date.now()}`;
-            await api.startSession({ session_id: sessionId, user_id: `+234${phone.trim()}` });
+            const userId = `+234${phone.trim()}`;
+            await api.startSession({ session_id: sessionId, user_id: userId });
+            console.log(`[CardioTwin] ✅ Session created successfully! Session ID: ${sessionId}, User: ${userId}`);
             navigate(`/dashboard?session_id=${sessionId}`);
         } catch (err) {
-            console.error('Session start failed:', err);
-            // Fallback for resilient UI demo
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(`[CardioTwin] ❌ Session creation failed: ${message}. Falling back to demo session.`);
             navigate(`/dashboard?session_id=session-${Date.now()}`);
         } finally {
             setIsLoading(false);
@@ -39,10 +43,10 @@ export default function LandingPage() {
                         <div className="flex flex-col gap-8">
                             <div className="space-y-4">
                                 <h1 className="text-5xl lg:text-7xl font-bold leading-[1.1] tracking-tight text-background-dark">
-                                    Your Heart’s <span className="text-primary italic font-serif">Early Warning</span> System
+                                    {t('hero.title1')} <span className="text-primary italic font-serif">{t('hero.title2')}</span> {t('hero.title3')}
                                 </h1>
                                 <p className="text-lg lg:text-xl text-background-dark/70 max-w-xl leading-relaxed font-light">
-                                    Real-time cardiometabolic risk scoring designed to prevent heart disease before it starts. Get instant AI-driven assessments directly on WhatsApp.
+                                    {t('hero.subtitle')}
                                 </p>
                             </div>
 
@@ -56,7 +60,7 @@ export default function LandingPage() {
                                         <input
                                             type="tel"
                                             className="bg-transparent border-none focus:outline-none w-full text-background-dark placeholder:text-background-dark/40 ml-3 font-medium"
-                                            placeholder="WhatsApp Number"
+                                            placeholder={t('hero.placeholder')}
                                             value={phone}
                                             onChange={(e) => setPhone(e.target.value)}
                                         />
@@ -66,7 +70,7 @@ export default function LandingPage() {
                                         disabled={isLoading}
                                         className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer shadow-lg shadow-primary/20 disabled:opacity-50"
                                     >
-                                        {isLoading ? 'Starting...' : 'Start Screening'}
+                                        {isLoading ? t('hero.starting') : t('hero.startScreening')}
                                     </button>
                                 </div>
                             </div>
@@ -74,11 +78,11 @@ export default function LandingPage() {
                             <div className="flex items-center gap-4 text-xs text-background-dark/60 font-medium">
                                 <div className="flex items-center gap-1">
                                     <Verified className="w-4 h-4 text-primary" />
-                                    HIPAA Compliant
+                                    {t('hero.hipaa')}
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <Lock className="w-4 h-4 text-primary" />
-                                    End-to-End Encrypted
+                                    {t('hero.encrypted')}
                                 </div>
                             </div>
                         </div>
@@ -93,12 +97,12 @@ export default function LandingPage() {
                                             <Shield className="w-5 h-5 text-primary" />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-background-dark text-sm">Active Monitoring</h4>
-                                            <p className="text-xs text-background-dark/50">CardioTwin Analysis</p>
+                                            <h4 className="font-bold text-background-dark text-sm">{t('hero.activeMonitoring')}</h4>
+                                            <p className="text-xs text-background-dark/50">{t('hero.cardioAnalysis')}</p>
                                         </div>
                                     </div>
                                     <div className="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">
-                                        Optimized
+                                        {t('hero.optimized')}
                                     </div>
                                 </div>
 
@@ -110,7 +114,7 @@ export default function LandingPage() {
 
                                     <div className="bg-white p-4 rounded-xl shadow-sm relative z-10 w-full max-w-xs ml-auto border border-primary/10">
                                         <div className="flex items-center justify-between mb-2">
-                                            <span className="text-xs font-semibold text-background-dark/60 uppercase">Health Score</span>
+                                            <span className="text-xs font-semibold text-background-dark/60 uppercase">{t('hero.healthScore')}</span>
                                             <span className="text-lg font-bold text-primary">94</span>
                                         </div>
                                         <div className="h-1.5 w-full bg-background-light rounded-full overflow-hidden">
@@ -128,10 +132,10 @@ export default function LandingPage() {
             <section id="how-it-works" className="py-24 bg-background-light relative">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-20">
-                        <h2 className="text-primary font-bold text-sm uppercase tracking-[0.2em] mb-4">Patient-Centric Care</h2>
-                        <h3 className="text-4xl md:text-5xl font-extrabold text-background-dark tracking-tight">Your Health, Simplified</h3>
+                        <h2 className="text-primary font-bold text-sm uppercase tracking-[0.2em] mb-4">{t('howItWorks.tag')}</h2>
+                        <h3 className="text-4xl md:text-5xl font-extrabold text-background-dark tracking-tight">{t('howItWorks.title')}</h3>
                         <p className="mt-4 text-background-dark/70 max-w-2xl mx-auto text-lg font-light">
-                            We transform complex clinical data into simple, actionable steps delivered right to your phone.
+                            {t('howItWorks.subtitle')}
                         </p>
                     </div>
 
@@ -141,9 +145,9 @@ export default function LandingPage() {
                             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform shadow-sm">
                                 <span className="material-symbols-outlined text-3xl">favorite</span>
                             </div>
-                            <h4 className="text-xl font-bold text-background-dark mb-3">Holistic Monitoring</h4>
+                            <h4 className="text-xl font-bold text-background-dark mb-3">{t('howItWorks.b1Title')}</h4>
                             <p className="text-background-dark/70 leading-relaxed font-light">
-                                Seamlessly connect your wearables and lab results for a complete picture of your heart health without the medical jargon.
+                                {t('howItWorks.b1Desc')}
                             </p>
                         </div>
 
@@ -152,9 +156,9 @@ export default function LandingPage() {
                             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform shadow-sm">
                                 <span className="material-symbols-outlined text-3xl">insights</span>
                             </div>
-                            <h4 className="text-xl font-bold text-background-dark mb-3">Personalized Insights</h4>
+                            <h4 className="text-xl font-bold text-background-dark mb-3">{t('howItWorks.b2Title')}</h4>
                             <p className="text-background-dark/70 leading-relaxed font-light">
-                                Receive a clear, easy-to-understand health score that tells you exactly where you stand and what it means for your future.
+                                {t('howItWorks.b2Desc')}
                             </p>
                         </div>
 
@@ -163,9 +167,9 @@ export default function LandingPage() {
                             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform shadow-sm">
                                 <span className="material-symbols-outlined text-3xl">sms</span>
                             </div>
-                            <h4 className="text-xl font-bold text-background-dark mb-3">WhatsApp Guidance</h4>
+                            <h4 className="text-xl font-bold text-background-dark mb-3">{t('howItWorks.b3Title')}</h4>
                             <p className="text-background-dark/70 leading-relaxed font-light">
-                                Get gentle nudges, diet tips, and activity reminders directly on WhatsApp. Like having a personal cardiologist in your pocket.
+                                {t('howItWorks.b3Desc')}
                             </p>
                         </div>
                     </div>
@@ -178,25 +182,25 @@ export default function LandingPage() {
                     <div className="flex flex-col lg:flex-row gap-16 items-center">
                         <div className="flex-1 space-y-8">
                             <h2 className="text-4xl font-extrabold text-background-dark">
-                                Your Health Data is <span className="text-primary italic font-serif">Sovereign</span>
+                                {t('security.title1')} <span className="text-primary italic font-serif">{t('security.title2')}</span>
                             </h2>
                             <p className="text-lg text-background-dark/70 leading-relaxed font-light">
-                                We believe health data privacy is a fundamental right. CardioTwin AI utilizes enterprise-grade encryption to ensure only you and your chosen providers can access your heart twin profile.
+                                {t('security.subtitle')}
                             </p>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div className="flex items-start gap-4 p-4 rounded-2xl bg-background-light">
                                     <Shield className="w-8 h-8 text-primary shrink-0" />
                                     <div>
-                                        <h5 className="font-bold text-background-dark mb-1">Bank-Level Security</h5>
-                                        <p className="text-sm text-background-dark/60 font-light">AES-256 bit encryption for all your health data.</p>
+                                        <h5 className="font-bold text-background-dark mb-1">{t('security.bankLevel')}</h5>
+                                        <p className="text-sm text-background-dark/60 font-light">{t('security.bankLevelDesc')}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-4 p-4 rounded-2xl bg-background-light">
                                     <Lock className="w-8 h-8 text-primary shrink-0" />
                                     <div>
-                                        <h5 className="font-bold text-background-dark mb-1">Zero Third-Party</h5>
-                                        <p className="text-sm text-background-dark/60 font-light">Your data is never sold to insurance companies.</p>
+                                        <h5 className="font-bold text-background-dark mb-1">{t('security.zeroThirdParty')}</h5>
+                                        <p className="text-sm text-background-dark/60 font-light">{t('security.zeroThirdPartyDesc')}</p>
                                     </div>
                                 </div>
                             </div>
@@ -214,22 +218,22 @@ export default function LandingPage() {
                                             <Verified className="w-7 h-7" />
                                         </div>
                                         <div>
-                                            <div className="text-xs text-primary font-bold uppercase tracking-widest mb-1">Privacy Protocol</div>
-                                            <div className="text-background-dark font-bold text-lg">HIPAA Compliant</div>
+                                            <div className="text-xs text-primary font-bold uppercase tracking-widest mb-1">{t('security.privacyProtocol')}</div>
+                                            <div className="text-background-dark font-bold text-lg">{t('security.hipaaCompliant')}</div>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center justify-between p-4 rounded-xl bg-background-light border border-white">
                                         <div className="flex items-center gap-3">
                                             <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                                            <span className="text-sm font-semibold text-background-dark">End-to-End Encryption</span>
+                                            <span className="text-sm font-semibold text-background-dark">{t('security.e2e')}</span>
                                         </div>
-                                        <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-md">ACTIVE</span>
+                                        <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-md">{t('security.active')}</span>
                                     </div>
 
                                     <div className="pt-4 text-sm text-background-dark/60 font-medium italic border-l-2 border-primary/40 pl-4">
-                                        "CardioTwin AI has transformed how we handle preventive patient data in our clinic securely and transparently."
-                                        <div className="mt-2 text-xs font-bold text-background-dark not-italic">— Dr. Amara Okafor, Cardiologist</div>
+                                        {t('security.testimonial')}
+                                        <div className="mt-2 text-xs font-bold text-background-dark not-italic">{t('security.testimonialAuthor')}</div>
                                     </div>
                                 </div>
                             </div>
@@ -245,10 +249,10 @@ export default function LandingPage() {
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
                     <div className="bg-white p-12 md:p-16 rounded-[3rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.05)] border border-white border-2 relative overflow-hidden">
                         <h2 className="text-4xl md:text-5xl font-extrabold text-background-dark mb-6 tracking-tight">
-                            Start Your Journey to a <br className="hidden sm:block" /> <span className="text-primary italic font-serif">Stronger Heart</span> Today
+                            {t('cta.title1')} <br className="hidden sm:block" /> <span className="text-primary italic font-serif">{t('cta.title2')}</span> {t('cta.title3')}
                         </h2>
                         <p className="text-background-dark/70 mb-10 text-lg md:text-xl max-w-2xl mx-auto font-light">
-                            Join thousands of people who are taking proactive control of their cardiovascular health with simple, personalized guidance.
+                            {t('cta.subtitle')}
                         </p>
 
                         <div className="flex flex-col items-center gap-6">
@@ -261,7 +265,7 @@ export default function LandingPage() {
                                     <input
                                         type="tel"
                                         className="bg-transparent border-none focus:outline-none w-full text-background-dark placeholder:text-background-dark/40 ml-3 py-4 font-medium"
-                                        placeholder="WhatsApp Number"
+                                        placeholder={t('hero.placeholder')}
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
                                     />
@@ -271,11 +275,11 @@ export default function LandingPage() {
                                     disabled={isLoading}
                                     className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-primary/20 transition-all cursor-pointer text-lg disabled:opacity-50"
                                 >
-                                    {isLoading ? 'Starting...' : 'Start Screening'}
+                                    {isLoading ? t('hero.starting') : t('hero.startScreening')}
                                 </button>
                             </div>
                             <p className="text-xs text-background-dark/50 font-medium">
-                                By starting, you agree to our <a href="#" className="underline hover:text-primary transition-colors">Terms of Service</a> and <a href="#" className="underline hover:text-primary transition-colors">Privacy Policy</a>.
+                                {t('cta.terms')} <a href="#" className="underline hover:text-primary transition-colors">{t('cta.termsLink')}</a> {t('cta.and')} <a href="#" className="underline hover:text-primary transition-colors">{t('cta.privacyLink')}</a>.
                             </p>
                         </div>
                     </div>

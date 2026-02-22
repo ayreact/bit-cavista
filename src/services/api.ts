@@ -57,6 +57,13 @@ export interface PredictionResponse {
     disclaimer: string;
 }
 
+export interface NudgeResponse {
+    message: string;
+    zone: string;
+    zone_label: string;
+    phone: string | null;
+}
+
 export const api = {
     async startSession(data: StartSessionRequest) {
         const res = await fetch(`${API_BASE_URL}/api/session/start`, {
@@ -95,6 +102,12 @@ export const api = {
             body: JSON.stringify(data),
         });
         if (!res.ok) throw new Error('Failed to fetch prediction');
+        return res.json();
+    },
+
+    async getNudge(sessionId: string): Promise<NudgeResponse> {
+        const res = await fetch(`${API_BASE_URL}/api/nudge/${sessionId}`);
+        if (!res.ok) throw new Error('Failed to fetch nudge');
         return res.json();
     },
 };
