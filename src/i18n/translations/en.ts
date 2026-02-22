@@ -13,7 +13,7 @@ const en: Record<string, string> = {
     'hero.placeholder': 'WhatsApp Number',
     'hero.starting': 'Starting...',
     'hero.startScreening': 'Start Screening',
-    'hero.hipaa': 'HIPAA Compliant',
+    'hero.NDPA': 'NDPA Compliant',
     'hero.encrypted': 'End-to-End Encrypted',
     'hero.enterPhone': 'Please enter your WhatsApp number.',
 
@@ -43,7 +43,7 @@ const en: Record<string, string> = {
     'security.zeroThirdParty': 'Zero Third-Party',
     'security.zeroThirdPartyDesc': 'Your data is never sold to insurance companies.',
     'security.privacyProtocol': 'Privacy Protocol',
-    'security.hipaaCompliant': 'HIPAA Compliant',
+    'security.NDPACompliant': 'NDPA Compliant',
     'security.e2e': 'End-to-End Encryption',
     'security.active': 'ACTIVE',
     'security.testimonial': '"CardioTwin AI has transformed how we handle preventive patient data in our clinic securely and transparently."',

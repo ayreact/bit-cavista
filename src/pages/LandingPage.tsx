@@ -78,7 +78,7 @@ export default function LandingPage() {
                             <div className="flex items-center gap-4 text-xs text-background-dark/60 font-medium">
                                 <div className="flex items-center gap-1">
                                     <Verified className="w-4 h-4 text-primary" />
-                                    {t('hero.hipaa')}
+                                    {t('hero.NDPA')}
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <Lock className="w-4 h-4 text-primary" />
@@ -219,7 +219,7 @@ export default function LandingPage() {
                                         </div>
                                         <div>
                                             <div className="text-xs text-primary font-bold uppercase tracking-widest mb-1">{t('security.privacyProtocol')}</div>
-                                            <div className="text-background-dark font-bold text-lg">{t('security.hipaaCompliant')}</div>
+                                            <div className="text-background-dark font-bold text-lg">{t('security.NDPACompliant')}</div>
                                         </div>
                                     </div>
 

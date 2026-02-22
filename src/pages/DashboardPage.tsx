@@ -6,8 +6,9 @@ import NudgePanel from '../components/dashboard/NudgePanel';
 import { api } from '../services/api';
 import type { NudgeResponse } from '../services/api';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 import { HealthAvatar } from '../components/HealthAvatar';
+import { CanvasErrorBoundary } from '../components/CanvasErrorBoundary';
 import { useLanguage, LANGUAGE_OPTIONS } from '../i18n/LanguageContext';
 
 export interface Vitals {
@@ -56,6 +57,8 @@ export default function DashboardPage() {
         if (activeView !== 'overview' || !sessionId) return;
 
         const pollScore = async () => {
+            // Skip polling when offline to avoid spamming console errors
+            if (!navigator.onLine) return;
             try {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const data: any = await api.getScore(sessionId);
@@ -235,25 +238,28 @@ export default function DashboardPage() {
                                         {/* 3D Body Render — shifts left when panel is open */}
                                         <div className={`relative h-full min-h-[700px] flex items-center justify-center z-10 transition-all duration-500 ease-in-out ${showNudge ? 'flex-[3]' : 'flex-1'}`}>
                                             <div className="absolute inset-0 translate-y-4 rounded-3xl overflow-hidden pointer-events-auto">
-                                                <Canvas shadows camera={{ position: [0, 1, 6], fov: 35 }}>
-                                                    <Suspense fallback={null}>
-                                                        <ambientLight intensity={0.6} />
-                                                        <spotLight position={[5, 5, 5]} intensity={1.5} angle={0.5} penumbra={1} castShadow />
-                                                        <Environment preset="city" />
+                                                <CanvasErrorBoundary>
+                                                    <Canvas shadows camera={{ position: [0, 1, 6], fov: 35 }}>
+                                                        <Suspense fallback={null}>
+                                                            <ambientLight intensity={0.8} />
+                                                            <directionalLight position={[5, 5, 5]} intensity={1.2} castShadow />
+                                                            <directionalLight position={[-3, 3, -3]} intensity={0.4} />
+                                                            <hemisphereLight intensity={0.5} groundColor="#e0e0e0" />
 
-                                                        <HealthAvatar score={liveVitals.score} vitals={liveVitals} />
+                                                            <HealthAvatar score={liveVitals.score} vitals={liveVitals} />
 
-                                                        <OrbitControls
-                                                            enablePan={false}
-                                                            makeDefault
-                                                            minPolarAngle={Math.PI / 6}
-                                                            maxPolarAngle={Math.PI / 1.5}
-                                                            minDistance={1.5}
-                                                            maxDistance={15}
-                                                            zoomSpeed={1.5}
-                                                        />
-                                                    </Suspense>
-                                                </Canvas>
+                                                            <OrbitControls
+                                                                enablePan={false}
+                                                                makeDefault
+                                                                minPolarAngle={Math.PI / 6}
+                                                                maxPolarAngle={Math.PI / 1.5}
+                                                                minDistance={1.5}
+                                                                maxDistance={15}
+                                                                zoomSpeed={1.5}
+                                                            />
+                                                        </Suspense>
+                                                    </Canvas>
+                                                </CanvasErrorBoundary>
                                             </div>
 
                                             {/* Bottom Floating Info Panel */}
@@ -321,8 +327,8 @@ export default function DashboardPage() {
                                                 key={option.code}
                                                 onClick={() => setLang(option.code)}
                                                 className={`relative flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer group ${isActive
-                                                        ? 'border-primary bg-primary/5 shadow-md shadow-primary/10'
-                                                        : 'border-background-dark/10 bg-white hover:border-primary/30 hover:bg-primary/[0.02] hover:shadow-sm'
+                                                    ? 'border-primary bg-primary/5 shadow-md shadow-primary/10'
+                                                    : 'border-background-dark/10 bg-white hover:border-primary/30 hover:bg-primary/[0.02] hover:shadow-sm'
                                                     }`}
                                             >
                                                 <span className="text-2xl">{option.flag}</span>

@@ -13,7 +13,7 @@ const ig: Record<string, string> = {
     'hero.placeholder': 'Nọmba WhatsApp',
     'hero.starting': 'Ó na-amalite...',
     'hero.startScreening': 'Malite Nyocha',
-    'hero.hipaa': 'Kwekọrọ na HIPAA',
+    'hero.NDPA': 'Kwekọrọ na NDPA',
     'hero.encrypted': 'Nzuzo Site N\'Isi Ruo N\'Ọgwụgwụ',
     'hero.enterPhone': 'Biko tinye nọmba WhatsApp gị.',
 
@@ -43,7 +43,7 @@ const ig: Record<string, string> = {
     'security.zeroThirdParty': 'Enweghị Ndị Nke Atọ',
     'security.zeroThirdPartyDesc': 'A naghị ere data gị nye ụlọ ọrụ inshọransị.',
     'security.privacyProtocol': 'Usoro Nzuzo',
-    'security.hipaaCompliant': 'Kwekọrọ na HIPAA',
+    'security.NDPACompliant': 'Kwekọrọ na NDPA',
     'security.e2e': 'Nzuzo Site N\'Isi Ruo N\'Ọgwụgwụ',
     'security.active': 'NA-ARỤ ỌRỤ',
     'security.testimonial': '"CardioTwin AI agbanweela otú anyị si ejikwa data ọgwụgwọ mgbochi n\'ụlọ ọgwụ anyị n\'ụzọ dị nchekwa na nkwupụta."',

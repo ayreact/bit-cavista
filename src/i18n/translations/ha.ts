@@ -13,7 +13,7 @@ const ha: Record<string, string> = {
     'hero.placeholder': 'Lambar WhatsApp',
     'hero.starting': 'Ana farawa...',
     'hero.startScreening': 'Fara Gwajin',
-    'hero.hipaa': 'Ya Dace da HIPAA',
+    'hero.NDPA': 'Ya Dace da NDPA',
     'hero.encrypted': 'Rufewa Daga Farko Zuwa Ƙarshe',
     'hero.enterPhone': 'Da fatan za a shigar da lambar WhatsApp ɗinku.',
 
@@ -43,7 +43,7 @@ const ha: Record<string, string> = {
     'security.zeroThirdParty': 'Babu Ɓangare Na Uku',
     'security.zeroThirdPartyDesc': 'Ba a taɓa sayar da bayananka ga kamfanonin inshora ba.',
     'security.privacyProtocol': 'Ka\'idar Sirri',
-    'security.hipaaCompliant': 'Ya Dace da HIPAA',
+    'security.NDPACompliant': 'Ya Dace da NDPA',
     'security.e2e': 'Rufewa Daga Farko Zuwa Ƙarshe',
     'security.active': 'YANA AIKI',
     'security.testimonial': '"CardioTwin AI ya canza yadda muke kula da bayanan rigakafin mara lafiya a asibitinmu cikin tsaro da gaskiya."',

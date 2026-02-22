@@ -13,7 +13,7 @@ const yo: Record<string, string> = {
     'hero.placeholder': 'Nọ́mbà WhatsApp',
     'hero.starting': 'Ó ń bẹ̀rẹ̀...',
     'hero.startScreening': 'Bẹ̀rẹ̀ Ìṣàyẹ̀wò',
-    'hero.hipaa': 'Ó Bá HIPAA Mu',
+    'hero.NDPA': 'Ó Bá NDPA Mu',
     'hero.encrypted': 'Ìpamọ́ Oríkèé-sí-Orík',
     'hero.enterPhone': 'Jọ̀wọ́ tẹ nọ́mbà WhatsApp rẹ.',
 
@@ -43,7 +43,7 @@ const yo: Record<string, string> = {
     'security.zeroThirdParty': 'Kò sí Ẹlẹ́kẹta',
     'security.zeroThirdPartyDesc': 'A kì í ta dátà rẹ sí àwọn ilé-iṣẹ́ ìṣedúró.',
     'security.privacyProtocol': 'Ètò Ìpamọ́',
-    'security.hipaaCompliant': 'Ó Bá HIPAA Mu',
+    'security.NDPACompliant': 'Ó Bá NDPA Mu',
     'security.e2e': 'Ìpamọ́ Oríkèé-sí-Orík',
     'security.active': 'ṢÍṢẸ́',
     'security.testimonial': '"CardioTwin AI ti yí bí a ṣe ń ṣàkóso dátà aláìsàn ìdènà ní ilé-ìwòsàn wa pẹ̀lú ààbò àti ìgbékalẹ̀ kedere padà."',
