@@ -13,7 +13,7 @@ const en: Record<string, string> = {
     'hero.placeholder': 'WhatsApp Number',
     'hero.starting': 'Starting...',
     'hero.startScreening': 'Start Screening',
-    'hero.NDPA': 'NDPA Compliant',
+    'hero.hipaa': 'HIPAA Compliant',
     'hero.encrypted': 'End-to-End Encrypted',
     'hero.enterPhone': 'Please enter your WhatsApp number.',
 
@@ -43,7 +43,7 @@ const en: Record<string, string> = {
     'security.zeroThirdParty': 'Zero Third-Party',
     'security.zeroThirdPartyDesc': 'Your data is never sold to insurance companies.',
     'security.privacyProtocol': 'Privacy Protocol',
-    'security.NDPACompliant': 'NDPA Compliant',
+    'security.hipaaCompliant': 'HIPAA Compliant',
     'security.e2e': 'End-to-End Encryption',
     'security.active': 'ACTIVE',
     'security.testimonial': '"CardioTwin AI has transformed how we handle preventive patient data in our clinic securely and transparently."',
@@ -98,6 +98,8 @@ const en: Record<string, string> = {
 
     // Sidebar
     'sidebar.overview': 'Overview',
+    'sidebar.projection': 'What-If',
+    'sidebar.history': 'History',
     'sidebar.settings': 'Settings',
     'sidebar.exit': 'Exit Dashboard',
 
@@ -110,6 +112,40 @@ const en: Record<string, string> = {
     'nudge.mindfulBreak': 'Mindful Break',
     'nudge.gettingAdvice': 'Getting Advice...',
     'nudge.refreshAdvice': 'Refresh Advice',
+
+    // Projection panel
+    'projection.title': 'What-If Projection',
+    'projection.subtitle': 'See your future health trajectory',
+    'projection.days': 'days',
+    'projection.today': 'Today',
+    'projection.projected': 'Projected',
+    'projection.loading': 'Calculating projection...',
+    'projection.retry': 'Try Again',
+    'projection.improving': 'Trending Positive',
+    'projection.declining': 'Needs Attention',
+    'projection.scoreChange': 'Score change',
+    'projection.hrChange': 'Resting HR change',
+    'projection.riskChange': 'Risk category',
+    'projection.scenarioLabel': 'Scenario (Optional)',
+    'projection.scenarioPlaceholder': 'e.g., "What if I stop taking sugar"',
+    'projection.analyze': 'Analyze',
+    'projection.scenarioHint': 'AI will analyze this lifestyle change',
+
+    // History chart
+    'history.title': 'Session History',
+    'history.subtitle': 'Live updates every 10s',
+    'history.score': 'Score',
+    'history.heartRate': 'Heart Rate',
+    'history.hrv': 'HRV',
+    'history.spo2': 'SpO₂',
+    'history.loading': 'Loading history...',
+    'history.retry': 'Try Again',
+    'history.noData': 'No history data yet',
+    'history.noDataHint': 'Data will appear as readings are collected',
+    'history.zoneGreen': 'Thriving',
+    'history.zoneYellow': 'Mild Strain',
+    'history.zoneOrange': 'Elevated',
+    'history.zoneRed': 'Critical',
 
     // Demo page
     'demo.subtitle': "Your Heart's Early Warning System",

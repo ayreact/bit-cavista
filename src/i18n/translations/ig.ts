@@ -13,7 +13,7 @@ const ig: Record<string, string> = {
     'hero.placeholder': 'Nọmba WhatsApp',
     'hero.starting': 'Ó na-amalite...',
     'hero.startScreening': 'Malite Nyocha',
-    'hero.NDPA': 'Kwekọrọ na NDPA',
+    'hero.hipaa': 'Kwekọrọ na HIPAA',
     'hero.encrypted': 'Nzuzo Site N\'Isi Ruo N\'Ọgwụgwụ',
     'hero.enterPhone': 'Biko tinye nọmba WhatsApp gị.',
 
@@ -43,7 +43,7 @@ const ig: Record<string, string> = {
     'security.zeroThirdParty': 'Enweghị Ndị Nke Atọ',
     'security.zeroThirdPartyDesc': 'A naghị ere data gị nye ụlọ ọrụ inshọransị.',
     'security.privacyProtocol': 'Usoro Nzuzo',
-    'security.NDPACompliant': 'Kwekọrọ na NDPA',
+    'security.hipaaCompliant': 'Kwekọrọ na HIPAA',
     'security.e2e': 'Nzuzo Site N\'Isi Ruo N\'Ọgwụgwụ',
     'security.active': 'NA-ARỤ ỌRỤ',
     'security.testimonial': '"CardioTwin AI agbanweela otú anyị si ejikwa data ọgwụgwọ mgbochi n\'ụlọ ọgwụ anyị n\'ụzọ dị nchekwa na nkwupụta."',
@@ -98,6 +98,8 @@ const ig: Record<string, string> = {
 
     // Sidebar
     'sidebar.overview': 'Nchịkọta',
+    'sidebar.projection': 'Ma-Ọ-Bụrụ',
+    'sidebar.history': 'Akụkọ',
     'sidebar.settings': 'Ntọala',
     'sidebar.exit': 'Pụọ na Dashboard',
 
@@ -110,6 +112,40 @@ const ig: Record<string, string> = {
     'nudge.mindfulBreak': 'Ezumike Uche',
     'nudge.gettingAdvice': 'Na-enweta ndụmọdụ...',
     'nudge.refreshAdvice': 'Megharịa Ndụmọdụ',
+
+    // Projection panel
+    'projection.title': 'Amụma Ma-Ọ-Bụrụ',
+    'projection.subtitle': 'Lee ụzọ ahụ ike gị n\'ọdịnihu',
+    'projection.days': 'ụbọchị',
+    'projection.today': 'Taa',
+    'projection.projected': 'Amụma',
+    'projection.loading': 'Na-agbakọ amụma...',
+    'projection.retry': 'Nwaa Ọzọ',
+    'projection.improving': 'Na-adịkwu Mma',
+    'projection.declining': 'Chọrọ Nlekọta',
+    'projection.scoreChange': 'Mgbanwe akara',
+    'projection.hrChange': 'Mgbanwe ịkụ obi',
+    'projection.riskChange': 'Ọkwa ihe ize ndụ',
+    'projection.scenarioLabel': 'Ọnọdụ (Nhọrọ)',
+    'projection.scenarioPlaceholder': 'dịka, "Kedu ihe ga-eme ma m kwụsị iri shuga"',
+    'projection.analyze': 'Nyochaa',
+    'projection.scenarioHint': 'AI ga-enyocha mgbanwe ndụ a',
+
+    // History chart
+    'history.title': 'Akụkọ Oge',
+    'history.subtitle': 'Mmelite kwa 10s',
+    'history.score': 'Akara',
+    'history.heartRate': 'Ịkụ Obi',
+    'history.hrv': 'HRV',
+    'history.spo2': 'SpO₂',
+    'history.loading': 'Na-ebu akụkọ...',
+    'history.retry': 'Nwaa Ọzọ',
+    'history.noData': 'Ọ nwebeghị data akụkọ',
+    'history.noDataHint': 'Data ga-egosi ka a na-anakọta ihe agụrụ',
+    'history.zoneGreen': 'Na-eto Eto',
+    'history.zoneYellow': 'Ntaramahụhụ Nta',
+    'history.zoneOrange': 'Dị Elu',
+    'history.zoneRed': 'Dị Njọ',
 
     // Demo page
     'demo.subtitle': 'Usoro Ịdọ Aka Ná Ntị N\'Oge Maka Obi Gị',

@@ -3,6 +3,7 @@ import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import LandingPage from './pages/LandingPage';
 import DashboardPage from './pages/DashboardPage';
+import DemoPage from './pages/DemoPage';
 import { useEffect } from 'react';
 import { LanguageProvider } from './i18n/LanguageContext';
 
@@ -24,6 +25,7 @@ function App() {
               </>
             } />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/demo" element={<DemoPage />} />
           </Routes>
         </div>
       </Router>

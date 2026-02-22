@@ -1,10 +1,10 @@
-import { Settings, LayoutDashboard, LogOut } from 'lucide-react';
+import { Settings, LayoutDashboard, LogOut, Calendar, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 interface SidebarProps {
-    activeView: 'overview' | 'settings';
-    setActiveView: (view: 'overview' | 'settings') => void;
+    activeView: 'overview' | 'projection' | 'history' | 'settings';
+    setActiveView: (view: 'overview' | 'projection' | 'history' | 'settings') => void;
 }
 
 export default function Sidebar({ activeView, setActiveView }: SidebarProps) {
@@ -12,11 +12,13 @@ export default function Sidebar({ activeView, setActiveView }: SidebarProps) {
 
     const navItems = [
         { id: 'overview', label: t('sidebar.overview'), icon: LayoutDashboard },
+        { id: 'projection', label: t('sidebar.projection'), icon: Calendar },
+        { id: 'history', label: t('sidebar.history'), icon: BarChart3 },
         { id: 'settings', label: t('sidebar.settings'), icon: Settings },
     ] as const;
 
     return (
-        <aside className="hidden md:flex w-64 h-[calc(100vh-4rem)] border-r border-primary/10 bg-white flex-col sticky top-16 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+        <aside className="w-64 h-[calc(100vh-4rem)] border-r border-primary/10 bg-white flex flex-col sticky top-16 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
             <div className="p-6 flex-1">
                 <nav className="space-y-2">
                     {navItems.map((item) => {

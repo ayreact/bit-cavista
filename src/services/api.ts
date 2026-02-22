@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://cardiotwin-jqrct.ondigitalocean.app';
 
 export interface StartSessionRequest {
     session_id: string;
@@ -46,6 +46,7 @@ export interface HistoryEntry {
 export interface PredictionRequest {
     session_id: string;
     days: number;
+    scenario?: string;
 }
 
 export interface PredictionResponse {
@@ -55,6 +56,7 @@ export interface PredictionResponse {
     current_risk_category: string;
     projected_risk_category: string;
     disclaimer: string;
+    scenario_note?: string;
 }
 
 export interface NudgeResponse {
@@ -77,11 +79,7 @@ export const api = {
 
     async getScore(sessionId: string): Promise<any> {
         const res = await fetch(`${API_BASE_URL}/api/score/${sessionId}`);
-        if (!res.ok) {
-            const errorBody = await res.text().catch(() => 'No error body');
-            console.error(`[API] Score fetch failed (${res.status}):`, errorBody);
-            throw new Error(`Failed to fetch score: ${res.status} ${res.statusText}`);
-        }
+        if (!res.ok) throw new Error('Failed to fetch score');
         const data = await res.json();
         if (data.status === 'error' || data.error) {
             throw new Error(data.message || 'Invalid score data format');
@@ -112,6 +110,22 @@ export const api = {
     async getNudge(sessionId: string): Promise<NudgeResponse> {
         const res = await fetch(`${API_BASE_URL}/api/nudge/${sessionId}`);
         if (!res.ok) throw new Error('Failed to fetch nudge');
+        return res.json();
+    },
+
+    async submitReading(data: {
+        session_id: string;
+        bpm: number;
+        hrv: number;
+        spo2: number;
+        temperature: number;
+    }) {
+        const res = await fetch(`${API_BASE_URL}/api/reading`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+        if (!res.ok) throw new Error('Failed to submit reading');
         return res.json();
     },
 };

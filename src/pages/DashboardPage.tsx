@@ -3,13 +3,15 @@ import { Activity, Bell, BrainCircuit, Sparkles, Globe, Check } from 'lucide-rea
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/dashboard/Sidebar';
 import NudgePanel from '../components/dashboard/NudgePanel';
+import ProjectionPanel from '../components/dashboard/ProjectionPanel';
+import HistoryChart from '../components/dashboard/HistoryChart';
 import { api } from '../services/api';
 import type { NudgeResponse } from '../services/api';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, Environment } from '@react-three/drei';
 import { HealthAvatar } from '../components/HealthAvatar';
-import { CanvasErrorBoundary } from '../components/CanvasErrorBoundary';
 import { useLanguage, LANGUAGE_OPTIONS } from '../i18n/LanguageContext';
+import { useSensorSimulator } from '../hooks/useSensorSimulator';
 
 export interface Vitals {
     heartRate: number;
@@ -26,7 +28,7 @@ export default function DashboardPage() {
     const sessionId = searchParams.get('session_id');
     const { lang, setLang, t } = useLanguage();
 
-    const [activeView, setActiveView] = useState<'overview' | 'settings'>('overview');
+    const [activeView, setActiveView] = useState<'overview' | 'projection' | 'history' | 'settings'>('overview');
 
     const defaultVitals: Vitals = {
         heartRate: 0,
@@ -52,13 +54,48 @@ export default function DashboardPage() {
 
     const [calibration, setCalibration] = useState<{ active: boolean, progress: number }>({ active: true, progress: 0 });
 
-    // Polling Score API
+    // Handle reading response from sensor simulator
+    const handleReadingResponse = useCallback((_reading: any, response: any) => {
+        console.log('[Dashboard] handleReadingResponse called:', response);
+        if (response.status === 'calibrating') {
+            setCalibration({
+                active: true,
+                progress: (response.readings_collected || 0) / (response.readings_needed || 15)
+            });
+        } else if (response.status === 'scored' && response.components) {
+            console.log('[Dashboard] Updating vitals with:', response.components);
+            setCalibration({ active: false, progress: 1 });
+            setLiveVitals({
+                heartRate: Math.round(response.components.heart_rate.value),
+                hrv: Math.round(response.components.hrv.value),
+                spO2: Math.round(response.components.spo2.value),
+                skinTemp: response.components.temperature.value,
+                score: Math.round(response.score),
+                trend: response.zone_label || 'Optimal'
+            });
+        }
+    }, []);
+
+    // Sensor simulator - sends mock biometric data to backend
+    // This simulates what the hardware would do in production
+    useSensorSimulator({
+        sessionId,
+        enabled: activeView === 'overview' && !!sessionId,
+        intervalMs: 1000, // Send reading every 1 second for even faster calibration
+        onReading: handleReadingResponse,
+    });
+
+    // Fallback: Poll Score API only if sensor simulator isn't providing data
+    // This is mainly for when connecting to real hardware that doesn't use the simulator
     useEffect(() => {
         if (activeView !== 'overview' || !sessionId) return;
+        
+        // Skip polling if we're using the sensor simulator (which provides data via onReading)
+        // Only poll as a fallback for real hardware connections
+        const skipPolling = true; // Sensor simulator is active
+        if (skipPolling) return;
 
         const pollScore = async () => {
-            // Skip polling when offline to avoid spamming console errors
-            if (!navigator.onLine) return;
             try {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const data: any = await api.getScore(sessionId);
@@ -82,7 +119,7 @@ export default function DashboardPage() {
                 }
             } catch (err) {
                 const message = err instanceof Error ? err.message : String(err);
-                console.warn(`[CardioTwin] Score API failed: ${message}. Using mock data fallback.`);
+                console.error(`[CardioTwin] Score API failed: ${message}. Falling back to mock data.`);
                 // Graceful fallback mock data
                 setCalibration({ active: false, progress: 1 });
                 setLiveVitals({
@@ -130,34 +167,34 @@ export default function DashboardPage() {
         <div className="bg-background-light text-background-dark h-screen overflow-hidden font-display flex flex-col">
             {/* Top Navigation Bar */}
             <header className="sticky top-0 z-50 w-full border-b border-primary/10 bg-white/95 backdrop-blur-md shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
-                <div className="w-full px-4 sm:px-6 h-16 flex items-center justify-between">
-                    <Link to="/" className="flex items-center gap-2 sm:gap-3">
-                        <div className="text-primary bg-primary/10 p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
-                            <Activity className="w-5 h-5 sm:w-6 sm:h-6" />
+                <div className="w-full px-6 h-16 flex items-center justify-between">
+                    <Link to="/" className="flex items-center gap-3">
+                        <div className="text-primary bg-primary/10 p-2 rounded-xl">
+                            <Activity className="w-6 h-6" />
                         </div>
                         <div>
-                            <h1 className="text-lg sm:text-xl font-bold tracking-tight">CardioTwin <span className="text-primary italic font-serif">AI</span></h1>
+                            <h1 className="text-xl font-bold tracking-tight">CardioTwin <span className="text-primary italic font-serif">AI</span></h1>
                         </div>
                     </Link>
 
-                    <div className="flex items-center gap-3 sm:gap-6">
-                        <div className="hidden xs:flex items-center gap-2 bg-primary/10 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-primary/20 shadow-sm">
+                    <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20 shadow-sm">
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                             </span>
-                            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-primary">{t('dash.liveStatus')}</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-primary">{t('dash.liveStatus')}</span>
                         </div>
-                        <div className="hidden xs:block h-6 sm:h-8 w-[1px] bg-background-dark/10"></div>
-                        <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="h-8 w-[1px] bg-background-dark/10"></div>
+                        <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setActiveView('settings')}
-                                className="p-1.5 sm:p-2 bg-background-light hover:bg-primary/10 rounded-lg sm:rounded-xl transition-colors text-background-dark/60 hover:text-primary relative shadow-sm border border-transparent hover:border-primary/20"
+                                className="p-2 bg-background-light hover:bg-primary/10 rounded-xl transition-colors text-background-dark/60 hover:text-primary relative shadow-sm border border-transparent hover:border-primary/20"
                             >
-                                <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
-                                <span className="absolute top-1 sm:top-1.5 right-1 sm:right-1.5 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-rose-500 rounded-full border-2 border-white"></span>
+                                <Bell className="w-5 h-5" />
+                                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white"></span>
                             </button>
-                            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full overflow-hidden border-2 border-primary/20 shadow-sm">
+                            <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-primary/20 shadow-sm">
                                 <img
                                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWXOkTJMP_6l_TFoYjjjmGFjdU6zuDygl_fyTXXnHnGQmH6D8Uea5Vsepca75gCDkc4FztOnI9hV-AAFUzuWPquePJvfdmd9Z7VVjfd-a6IMk9m0SLbuTvSu_s-en5fL3C0vrE89DgKJaOrAZMcefaritp3iJbH1TFSZZTJCMYQFCQSbvXn8mXYKTLbpbniUh_Tld86lZN6eMTc_9F7X-DcwFKoeqNB8khRla_bbGvXdmGtr55EjrWULm-3ln3lE35aD04nOukHAw"
                                     alt="Medical professional"
@@ -174,36 +211,36 @@ export default function DashboardPage() {
 
                 <main className="flex-1 overflow-y-auto p-6 md:p-8">
                     {activeView === 'overview' && (
-                        <div className="space-y-4 sm:space-y-6 max-w-6xl mx-auto flex flex-col min-h-full sm:min-h-[calc(100vh-8rem)] pb-8">
-                            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 shrink-0 mb-2">
-                                <div className="text-center sm:text-left">
-                                    <h2 className="text-2xl sm:text-3xl font-extrabold flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3 tracking-tight">
+                        <div className="space-y-6 max-w-6xl mx-auto flex flex-col min-h-[calc(100vh-8rem)] pb-8">
+                            <div className="flex items-end justify-between shrink-0 mb-2">
+                                <div>
+                                    <h2 className="text-3xl font-extrabold flex items-center gap-3 tracking-tight">
                                         CardioTwin <span className="italic font-serif text-primary font-normal">{t('dash.digitalTwin')}</span>
                                         {calibration.active ? (
-                                            <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 sm:py-1 rounded-full uppercase tracking-wider bg-orange-100 text-orange-600 border border-orange-200 shadow-sm animate-pulse">
+                                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-orange-100 text-orange-600 border border-orange-200 shadow-sm animate-pulse">
                                                 {t('dash.calibrating')}
                                             </span>
                                         ) : (
-                                            <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 sm:py-1 rounded-full uppercase tracking-wider bg-emerald-100 text-emerald-600 border border-emerald-200 shadow-sm">
+                                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-emerald-100 text-emerald-600 border border-emerald-200 shadow-sm">
                                                 {t('dash.liveMonitoring')}
                                             </span>
                                         )}
                                     </h2>
-                                    <p className="text-xs sm:text-sm text-background-dark/60 mt-1 font-medium break-all sm:break-normal">{t('dash.session')}: {sessionId}</p>
+                                    <p className="text-background-dark/60 mt-1 font-medium">{t('dash.session')}: {sessionId} • {t('dash.realtimeSync')}</p>
                                 </div>
                                 {!calibration.active && (
-                                    <div className="flex flex-col-reverse sm:flex-row items-center gap-4 sm:gap-4 lg:gap-6">
+                                    <div className="flex items-center gap-4">
                                         <button
                                             onClick={fetchNudge}
                                             disabled={isLoadingNudge}
-                                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-sm font-bold transition-all border border-primary/20 hover:border-primary/30 cursor-pointer disabled:opacity-50 shadow-sm"
+                                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-sm font-bold transition-all border border-primary/20 hover:border-primary/30 cursor-pointer disabled:opacity-50 shadow-sm hover:shadow-md"
                                         >
                                             <Sparkles className={`w-4 h-4 ${isLoadingNudge ? 'animate-spin' : ''}`} />
                                             {isLoadingNudge ? t('dash.loading') : t('dash.getAiAdvice')}
                                         </button>
-                                        <div className="text-center sm:text-right flex items-center sm:items-end gap-3 sm:flex-col sm:gap-0">
-                                            <span className="text-[10px] uppercase font-bold text-background-dark/50 tracking-wider mb-0 sm:mb-1.5">{t('dash.healthScore')}</span>
-                                            <span className={`text-4xl sm:text-5xl font-black ${liveVitals.score >= 80 ? 'text-primary' : liveVitals.score >= 55 ? 'text-yellow-500' : liveVitals.score >= 30 ? 'text-orange-500' : 'text-rose-500'}`}>
+                                        <div className="text-right flex flex-col items-end">
+                                            <span className="text-xs uppercase font-bold text-background-dark/50 tracking-wider">{t('dash.healthScore')}</span>
+                                            <span className={`text-5xl font-black ${liveVitals.score >= 80 ? 'text-primary' : liveVitals.score >= 55 ? 'text-yellow-500' : liveVitals.score >= 30 ? 'text-orange-500' : 'text-rose-500'}`}>
                                                 {liveVitals.score}
                                             </span>
                                         </div>
@@ -225,52 +262,59 @@ export default function DashboardPage() {
                                         <div className="w-full h-3 bg-background-light rounded-full overflow-hidden border border-background-dark/10">
                                             <div
                                                 className="h-full bg-primary transition-all duration-500 rounded-full bg-[length:2rem_2rem] bg-[linear-gradient(45deg,rgba(255,255,255,.15)_25%,transparent_25%,transparent_50%,rgba(255,255,255,.15)_50%,rgba(255,255,255,.15)_75%,transparent_75%,transparent)] animate-[progress-stripes_1s_linear_infinite]"
-                                                style={{ width: `${Math.max(5, calibration.progress * 100)}%` }}
+                                                style={{ width: `${Math.min(100, Math.max(5, calibration.progress * 100))}%` }}
                                             ></div>
                                         </div>
                                         <div className="flex justify-between w-full mt-3 text-xs font-bold text-background-dark/50 uppercase tracking-widest">
                                             <span>{t('dash.initializing')}</span>
-                                            <span>{Math.round(calibration.progress * 100)}%</span>
+                                            <span>{Math.min(100, Math.round(calibration.progress * 100))}%</span>
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="flex flex-col lg:gap-4 w-full h-full min-h-[600px]">
+                                    <div className="flex gap-4 w-full h-full min-h-[600px]">
                                         {/* 3D Body Render — shifts left when panel is open */}
-                                        <div className={`relative h-full min-h-[500px] sm:min-h-[600px] lg:min-h-[700px] flex items-center justify-center z-10 transition-all duration-500 ease-in-out ${showNudge ? 'flex-[3]' : 'flex-1'}`}>
-                                            <div className="absolute inset-0 sm:translate-y-4 rounded-3xl overflow-hidden pointer-events-auto">
-                                                <CanvasErrorBoundary>
-                                                    <Canvas shadows camera={{ position: [0, 1, 6], fov: 35 }}>
-                                                        <Suspense fallback={null}>
-                                                            <ambientLight intensity={0.8} />
-                                                            <directionalLight position={[5, 5, 5]} intensity={1.2} castShadow />
-                                                            <directionalLight position={[-3, 3, -3]} intensity={0.4} />
-                                                            <hemisphereLight intensity={0.5} groundColor="#e0e0e0" />
+                                        <div className={`relative h-full min-h-[700px] flex items-center justify-center z-10 transition-all duration-500 ease-in-out ${showNudge ? 'flex-[3]' : 'flex-1'}`}>
+                                            <div className="absolute inset-0 translate-y-4 rounded-3xl overflow-hidden pointer-events-auto">
+                                                <Canvas 
+                                                    shadows 
+                                                    camera={{ position: [0, 1, 6], fov: 35 }}
+                                                    dpr={[1, 2]}
+                                                    performance={{ min: 0.5 }}
+                                                >
+                                                    <Suspense fallback={
+                                                        <mesh>
+                                                            <boxGeometry args={[1, 2, 0.5]} />
+                                                            <meshStandardMaterial color="#e5e7eb" wireframe />
+                                                        </mesh>
+                                                    }>
+                                                        <ambientLight intensity={0.6} />
+                                                        <spotLight position={[5, 5, 5]} intensity={1.5} angle={0.5} penumbra={1} castShadow />
+                                                        <Environment preset="city" />
 
-                                                            <HealthAvatar score={liveVitals.score} vitals={liveVitals} />
+                                                        <HealthAvatar score={liveVitals.score} vitals={liveVitals} />
 
-                                                            <OrbitControls
-                                                                enablePan={false}
-                                                                makeDefault
-                                                                minPolarAngle={Math.PI / 6}
-                                                                maxPolarAngle={Math.PI / 1.5}
-                                                                minDistance={1.5}
-                                                                maxDistance={15}
-                                                                zoomSpeed={1.5}
-                                                            />
-                                                        </Suspense>
-                                                    </Canvas>
-                                                </CanvasErrorBoundary>
+                                                        <OrbitControls
+                                                            enablePan={false}
+                                                            makeDefault
+                                                            minPolarAngle={Math.PI / 6}
+                                                            maxPolarAngle={Math.PI / 1.5}
+                                                            minDistance={1.5}
+                                                            maxDistance={15}
+                                                            zoomSpeed={1.5}
+                                                        />
+                                                    </Suspense>
+                                                </Canvas>
                                             </div>
 
                                             {/* Bottom Floating Info Panel */}
-                                            <div className="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 w-[95%] sm:w-[90%] max-w-2xl bg-white/90 backdrop-blur-xl p-4 sm:p-5 rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.08)] border border-primary/20 flex flex-col xs:flex-row items-center justify-between z-20 gap-4 sm:gap-0">
-                                                <div className="flex items-center gap-3 sm:gap-4 w-full xs:w-auto">
-                                                    <div className="p-2.5 sm:p-3 bg-primary/10 rounded-xl sm:rounded-2xl border border-primary/20">
-                                                        <BrainCircuit className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                                            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl bg-white/90 backdrop-blur-xl p-5 rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.08)] border border-primary/20 flex items-center justify-between z-20">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="p-3 bg-primary/10 rounded-2xl border border-primary/20">
+                                                        <BrainCircuit className="w-6 h-6 text-primary" />
                                                     </div>
                                                     <div>
-                                                        <h4 className="text-xs sm:text-sm font-bold text-background-dark mb-0.5">{t('dash.analysisStatus')}</h4>
-                                                        <p className="text-[10px] sm:text-xs text-background-dark/60 font-medium max-w-[200px] sm:max-w-md">
+                                                        <h4 className="text-sm font-bold text-background-dark mb-0.5">{t('dash.analysisStatus')}</h4>
+                                                        <p className="text-xs text-background-dark/60 font-medium max-w-md">
                                                             {liveVitals.score >= 80
                                                                 ? t('dash.statusOptimal')
                                                                 : liveVitals.score >= 55
@@ -279,31 +323,50 @@ export default function DashboardPage() {
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center justify-between xs:block xs:text-right w-full xs:w-auto xs:pl-4 xs:border-l border-background-dark/10">
-                                                    <span className="text-[9px] sm:text-[10px] font-bold text-background-dark/40 uppercase tracking-widest block xs:mb-1.5">{t('dash.activeZone')}</span>
-                                                    <span className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold border whitespace-nowrap ${liveVitals.score >= 80 ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : liveVitals.score >= 55 ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : liveVitals.score >= 30 ? 'bg-orange-100 text-orange-700 border-orange-200' : 'bg-rose-100 text-rose-700 border-rose-200'}`}>
+                                                <div className="text-right pl-4 border-l border-background-dark/10">
+                                                    <span className="text-[10px] font-bold text-background-dark/40 uppercase tracking-widest block mb-1.5 w-max">{t('dash.activeZone')}</span>
+                                                    <span className={`px-4 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${liveVitals.score >= 80 ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : liveVitals.score >= 55 ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : liveVitals.score >= 30 ? 'bg-orange-100 text-orange-700 border-orange-200' : 'bg-rose-100 text-rose-700 border-rose-200'}`}>
                                                         {liveVitals.trend || "Thriving"}
                                                     </span>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        {/* AI Advice Panel — on mobile it might overlay or stack */}
+                                        {/* AI Advice Panel */}
                                         {showNudge && nudge && (
-                                            <div className="fixed inset-0 z-[60] lg:relative lg:inset-auto lg:flex-[2] lg:min-w-[280px] lg:max-w-[380px] p-4 lg:p-0 bg-background-dark/20 lg:bg-transparent backdrop-blur-sm lg:backdrop-blur-none transition-all duration-500 ease-in-out">
-                                                <div className="relative h-full max-h-[90vh] lg:max-h-none overflow-hidden rounded-3xl lg:rounded-none shadow-2xl lg:shadow-none bg-white lg:bg-transparent">
-                                                    <NudgePanel
-                                                        nudge={nudge}
-                                                        isLoading={isLoadingNudge}
-                                                        onRefresh={fetchNudge}
-                                                        onClose={() => setShowNudge(false)}
-                                                    />
-                                                </div>
+                                            <div className="flex-[2] min-w-[280px] max-w-[380px] transition-all duration-500 ease-in-out">
+                                                <NudgePanel
+                                                    nudge={nudge}
+                                                    isLoading={isLoadingNudge}
+                                                    onRefresh={fetchNudge}
+                                                    onClose={() => setShowNudge(false)}
+                                                />
                                             </div>
                                         )}
                                     </div>
                                 )}
                             </div>
+                        </div>
+                    )}
+
+                    {activeView === 'projection' && sessionId && (
+                        <div className="max-w-4xl mx-auto py-8">
+                            <ProjectionPanel 
+                                sessionId={sessionId} 
+                                currentScore={liveVitals.score}
+                                currentVitals={{
+                                    heartRate: liveVitals.heartRate,
+                                    hrv: liveVitals.hrv,
+                                    spO2: liveVitals.spO2,
+                                    skinTemp: liveVitals.skinTemp,
+                                }}
+                            />
+                        </div>
+                    )}
+
+                    {activeView === 'history' && sessionId && (
+                        <div className="max-w-4xl mx-auto py-8 h-[calc(100vh-12rem)]">
+                            <HistoryChart sessionId={sessionId} />
                         </div>
                     )}
 
@@ -329,8 +392,8 @@ export default function DashboardPage() {
                                                 key={option.code}
                                                 onClick={() => setLang(option.code)}
                                                 className={`relative flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer group ${isActive
-                                                    ? 'border-primary bg-primary/5 shadow-md shadow-primary/10'
-                                                    : 'border-background-dark/10 bg-white hover:border-primary/30 hover:bg-primary/[0.02] hover:shadow-sm'
+                                                        ? 'border-primary bg-primary/5 shadow-md shadow-primary/10'
+                                                        : 'border-background-dark/10 bg-white hover:border-primary/30 hover:bg-primary/[0.02] hover:shadow-sm'
                                                     }`}
                                             >
                                                 <span className="text-2xl">{option.flag}</span>

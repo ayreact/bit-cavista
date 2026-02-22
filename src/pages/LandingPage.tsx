@@ -39,27 +39,27 @@ export default function LandingPage() {
                 </div>
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-                        <div className="flex flex-col gap-6 lg:gap-8 text-center lg:text-left">
-                            <div className="space-y-4 lg:space-y-6">
-                                <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold leading-[1.15] lg:leading-[1.1] tracking-tight text-background-dark">
+                    <div className="grid lg:grid-cols-2 gap-12 items-center">
+                        <div className="flex flex-col gap-8">
+                            <div className="space-y-4">
+                                <h1 className="text-5xl lg:text-7xl font-bold leading-[1.1] tracking-tight text-background-dark">
                                     {t('hero.title1')} <span className="text-primary italic font-serif">{t('hero.title2')}</span> {t('hero.title3')}
                                 </h1>
-                                <p className="text-base sm:text-lg lg:text-xl text-background-dark/70 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
+                                <p className="text-lg lg:text-xl text-background-dark/70 max-w-xl leading-relaxed font-light">
                                     {t('hero.subtitle')}
                                 </p>
                             </div>
 
-                            <div className="bg-white border border-primary/20 p-2 rounded-2xl w-full max-w-lg mx-auto lg:mx-0 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-background-dark/5">
+                            <div className="bg-white border border-primary/20 p-2 rounded-2xl max-w-lg shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-background-dark/5">
                                 <div className="flex flex-col sm:flex-row gap-2">
-                                    <div className="flex items-center bg-background-light rounded-xl flex-1 px-4 py-1 sm:py-0">
+                                    <div className="flex items-center bg-background-light rounded-xl flex-1 px-4">
                                         <div className="flex items-center gap-2 text-sm font-semibold pr-3 border-r border-primary/20 text-background-dark">
                                             <span className="text-xl">🇳🇬</span>
                                             <span>+234</span>
                                         </div>
                                         <input
                                             type="tel"
-                                            className="bg-transparent border-none focus:outline-none w-full text-background-dark placeholder:text-background-dark/40 ml-3 font-medium h-12"
+                                            className="bg-transparent border-none focus:outline-none w-full text-background-dark placeholder:text-background-dark/40 ml-3 font-medium"
                                             placeholder={t('hero.placeholder')}
                                             value={phone}
                                             onChange={(e) => setPhone(e.target.value)}
@@ -68,20 +68,20 @@ export default function LandingPage() {
                                     <button
                                         onClick={handleStart}
                                         disabled={isLoading}
-                                        className="bg-primary hover:bg-primary/90 text-white px-8 py-3.5 sm:py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer shadow-lg shadow-primary/20 disabled:opacity-50"
+                                        className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer shadow-lg shadow-primary/20 disabled:opacity-50"
                                     >
                                         {isLoading ? t('hero.starting') : t('hero.startScreening')}
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-center lg:justify-start gap-4 text-[10px] sm:text-xs text-background-dark/60 font-medium">
+                            <div className="flex items-center gap-4 text-xs text-background-dark/60 font-medium">
                                 <div className="flex items-center gap-1">
-                                    <Verified className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
-                                    {t('hero.NDPA')}
+                                    <Verified className="w-4 h-4 text-primary" />
+                                    {t('hero.hipaa')}
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+                                    <Lock className="w-4 h-4 text-primary" />
                                     {t('hero.encrypted')}
                                 </div>
                             </div>
@@ -139,7 +139,7 @@ export default function LandingPage() {
                         </p>
                     </div>
 
-                    <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 lg:gap-8">
+                    <div className="grid md:grid-cols-3 gap-8">
                         {/* Benefit 1 */}
                         <div className="group relative p-8 rounded-3xl bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(33,196,93,0.1)] hover:border-primary/20 transition-all duration-300 transform hover:-translate-y-1 border border-transparent">
                             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform shadow-sm">
@@ -188,19 +188,19 @@ export default function LandingPage() {
                                 {t('security.subtitle')}
                             </p>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
-                                <div className="flex items-start gap-4 p-4 lg:p-5 rounded-2xl bg-background-light">
-                                    <Shield className="w-6 h-6 lg:w-8 lg:h-8 text-primary shrink-0" />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div className="flex items-start gap-4 p-4 rounded-2xl bg-background-light">
+                                    <Shield className="w-8 h-8 text-primary shrink-0" />
                                     <div>
-                                        <h5 className="font-bold text-background-dark mb-1 text-sm lg:text-base">{t('security.bankLevel')}</h5>
-                                        <p className="text-xs lg:text-sm text-background-dark/60 font-light">{t('security.bankLevelDesc')}</p>
+                                        <h5 className="font-bold text-background-dark mb-1">{t('security.bankLevel')}</h5>
+                                        <p className="text-sm text-background-dark/60 font-light">{t('security.bankLevelDesc')}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-start gap-4 p-4 lg:p-5 rounded-2xl bg-background-light">
-                                    <Lock className="w-6 h-6 lg:w-8 lg:h-8 text-primary shrink-0" />
+                                <div className="flex items-start gap-4 p-4 rounded-2xl bg-background-light">
+                                    <Lock className="w-8 h-8 text-primary shrink-0" />
                                     <div>
-                                        <h5 className="font-bold text-background-dark mb-1 text-sm lg:text-base">{t('security.zeroThirdParty')}</h5>
-                                        <p className="text-xs lg:text-sm text-background-dark/60 font-light">{t('security.zeroThirdPartyDesc')}</p>
+                                        <h5 className="font-bold text-background-dark mb-1">{t('security.zeroThirdParty')}</h5>
+                                        <p className="text-sm text-background-dark/60 font-light">{t('security.zeroThirdPartyDesc')}</p>
                                     </div>
                                 </div>
                             </div>
@@ -219,7 +219,7 @@ export default function LandingPage() {
                                         </div>
                                         <div>
                                             <div className="text-xs text-primary font-bold uppercase tracking-widest mb-1">{t('security.privacyProtocol')}</div>
-                                            <div className="text-background-dark font-bold text-lg">{t('security.NDPACompliant')}</div>
+                                            <div className="text-background-dark font-bold text-lg">{t('security.hipaaCompliant')}</div>
                                         </div>
                                     </div>
 
@@ -247,11 +247,11 @@ export default function LandingPage() {
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 blur-[120px] rounded-full pointer-events-none"></div>
 
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-                    <div className="bg-white p-8 sm:p-12 md:p-16 rounded-[2.5rem] md:rounded-[3rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.05)] border border-white border-2 relative overflow-hidden">
-                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-background-dark mb-6 tracking-tight">
+                    <div className="bg-white p-12 md:p-16 rounded-[3rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.05)] border border-white border-2 relative overflow-hidden">
+                        <h2 className="text-4xl md:text-5xl font-extrabold text-background-dark mb-6 tracking-tight">
                             {t('cta.title1')} <br className="hidden sm:block" /> <span className="text-primary italic font-serif">{t('cta.title2')}</span> {t('cta.title3')}
                         </h2>
-                        <p className="text-background-dark/70 mb-8 sm:mb-10 text-base sm:text-lg md:text-xl max-w-2xl mx-auto font-light">
+                        <p className="text-background-dark/70 mb-10 text-lg md:text-xl max-w-2xl mx-auto font-light">
                             {t('cta.subtitle')}
                         </p>
 

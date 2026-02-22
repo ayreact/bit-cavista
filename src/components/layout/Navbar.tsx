@@ -1,11 +1,10 @@
-import { Heart, Globe, ChevronDown, Menu, X } from 'lucide-react';
+import { Heart, Globe, ChevronDown } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useLanguage, LANGUAGE_OPTIONS } from '../../i18n/LanguageContext';
 
 export default function Navbar() {
     const { lang, setLang, t } = useLanguage();
     const [langOpen, setLangOpen] = useState(false);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     // Close dropdown on outside click
@@ -19,29 +18,18 @@ export default function Navbar() {
         return () => document.removeEventListener('mousedown', handleClick);
     }, []);
 
-    // Prevent scrolling when mobile menu is open
-    useEffect(() => {
-        if (mobileMenuOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'unset';
-        }
-    }, [mobileMenuOpen]);
-
     const currentLang = LANGUAGE_OPTIONS.find(l => l.code === lang)!;
 
     return (
         <nav className="sticky top-0 z-50 w-full border-b border-primary/10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-16 sm:h-20 items-center">
+                <div className="flex justify-between h-20 items-center">
                     <div className="flex items-center gap-2 text-primary">
-                        <Heart className="w-6 h-6 sm:w-8 sm:h-8 fill-primary stroke-primary" />
-                        <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                        <Heart className="w-8 h-8 fill-primary stroke-primary" />
+                        <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                             CardioTwin<span className="text-primary">AI</span>
                         </span>
                     </div>
-
-                    {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center gap-8">
                         <a href="#how-it-works" className="text-sm font-medium hover:text-primary transition-colors">{t('nav.howItWorks')}</a>
                         <a href="#security" className="text-sm font-medium hover:text-primary transition-colors">{t('nav.security')}</a>
@@ -65,8 +53,8 @@ export default function Navbar() {
                                             key={option.code}
                                             onClick={() => { setLang(option.code); setLangOpen(false); }}
                                             className={`w-full text-left px-4 py-2.5 text-sm font-medium flex items-center gap-3 transition-colors cursor-pointer ${lang === option.code
-                                                ? 'bg-primary/10 text-primary'
-                                                : 'text-background-dark/70 hover:bg-background-light hover:text-background-dark'
+                                                    ? 'bg-primary/10 text-primary'
+                                                    : 'text-background-dark/70 hover:bg-background-light hover:text-background-dark'
                                                 }`}
                                         >
                                             <span className="text-base">{option.flag}</span>
@@ -80,60 +68,12 @@ export default function Navbar() {
                             )}
                         </div>
 
-                        <button className="bg-primary hover:bg-primary/90 text-background-dark px-6 py-2.5 rounded-lg font-bold text-sm transition-all shadow-lg shadow-primary/20 cursor-pointer">
+                        <button className="bg-primary hover:bg-primary/90 text-background-dark px-6 py-2.5 rounded-lg font-bold text-sm transition-all shadow-lg shadow-primary/20">
                             {t('nav.getStarted')}
                         </button>
                     </div>
-
-                    {/* Mobile Toggle */}
-                    <button
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        className="md:hidden p-2 text-background-dark hover:text-primary transition-colors"
-                    >
-                        {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                    </button>
                 </div>
             </div>
-
-            {/* Mobile Drawer */}
-            {mobileMenuOpen && (
-                <div className="fixed inset-0 top-16 z-40 md:hidden animate-in fade-in slide-in-from-right-full">
-                    <div className="absolute inset-0 bg-background-dark/20 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-                    <div className="absolute right-0 top-0 bottom-0 w-3/4 max-w-sm bg-white shadow-2xl flex flex-col p-6 overflow-y-auto">
-                        <div className="flex flex-col gap-6">
-                            <nav className="flex flex-col gap-4">
-                                <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-background-dark hover:text-primary transition-colors py-2 border-b border-background-light">{t('nav.howItWorks')}</a>
-                                <a href="#security" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-background-dark hover:text-primary transition-colors py-2 border-b border-background-light">{t('nav.security')}</a>
-                                <a href="#impact" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-background-dark hover:text-primary transition-colors py-2 border-b border-background-light">{t('nav.impact')}</a>
-                            </nav>
-
-                            <div className="space-y-4">
-                                <h4 className="text-sm font-bold text-background-dark/40 uppercase tracking-widest">{t('settings.language')}</h4>
-                                <div className="grid grid-cols-1 gap-2">
-                                    {LANGUAGE_OPTIONS.map((option) => (
-                                        <button
-                                            key={option.code}
-                                            onClick={() => { setLang(option.code); setMobileMenuOpen(false); }}
-                                            className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${lang === option.code
-                                                ? 'border-primary bg-primary/5 text-primary'
-                                                : 'border-background-light bg-white text-background-dark/70 hover:border-primary/20'
-                                                }`}
-                                        >
-                                            <span className="text-xl">{option.flag}</span>
-                                            <span className="font-bold">{option.label}</span>
-                                            {lang === option.code && <span className="ml-auto">✓</span>}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <button className="w-full bg-primary hover:bg-primary/90 text-background-dark py-4 rounded-xl font-bold text-lg transition-all shadow-lg shadow-primary/20 mt-4">
-                                {t('nav.getStarted')}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </nav>
     );
 }
