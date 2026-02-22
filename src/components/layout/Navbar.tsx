@@ -31,12 +31,12 @@ export default function Navbar() {
     const currentLang = LANGUAGE_OPTIONS.find(l => l.code === lang)!;
 
     return (
-        <nav className="sticky top-0 z-50 w-full border-b border-primary/10 bg-background-light/80 backdrop-blur-md">
+        <nav className="sticky top-0 z-50 w-full border-b border-primary/10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16 sm:h-20 items-center">
                     <div className="flex items-center gap-2 text-primary">
                         <Heart className="w-6 h-6 sm:w-8 sm:h-8 fill-primary stroke-primary" />
-                        <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+                        <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                             CardioTwin<span className="text-primary">AI</span>
                         </span>
                     </div>
