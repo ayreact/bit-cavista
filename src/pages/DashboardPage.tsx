@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Activity, Bell, Heart, ThermometerSun, Wind, BrainCircuit } from 'lucide-react';
+import { useState, useEffect, Suspense } from 'react';
+import { Activity, Bell, BrainCircuit } from 'lucide-react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/dashboard/Sidebar';
 import { api } from '../services/api';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, Environment } from '@react-three/drei';
+import { HealthAvatar } from '../components/HealthAvatar';
 
 export interface Vitals {
     heartRate: number;
@@ -68,7 +71,8 @@ export default function DashboardPage() {
                     }));
                 }
             } catch (err) {
-                console.error("Failed to poll score, using mock data", err);
+                const message = err instanceof Error ? err.message : String(err);
+                console.error(`[CardioTwin] Score API failed: ${message}. Falling back to mock data.`);
                 // Graceful fallback mock data
                 setCalibration({ active: false, progress: 1 });
                 setLiveVitals({
@@ -190,73 +194,29 @@ export default function DashboardPage() {
                                     <>
                                         {/* 3D Body Render */}
                                         <div className="relative w-full max-w-md h-full min-h-[700px] flex items-center justify-center z-10">
-                                            <img
-                                                src="/3d-body.png"
-                                                alt="Digital Twin Visual"
-                                                className="h-full max-h-[700px] object-contain opacity-95 drop-shadow-2xl translate-y-4"
-                                            />
+                                            <div className="absolute inset-0 translate-y-4 rounded-3xl overflow-hidden pointer-events-auto">
+                                                <Canvas shadows camera={{ position: [0, 1, 6], fov: 35 }}>
+                                                    <Suspense fallback={null}>
+                                                        <ambientLight intensity={0.6} />
+                                                        <spotLight position={[5, 5, 5]} intensity={1.5} angle={0.5} penumbra={1} castShadow />
+                                                        <Environment preset="city" />
 
-                                            {/* Labels overlaying the body image */}
+                                                        <HealthAvatar score={liveVitals.score} vitals={liveVitals} />
 
-                                            {/* Heart Rate - Chest Left */}
-                                            <div className="absolute top-[32%] left-[65%] flex flex-col items-center group">
-                                                <div className="w-4 h-4 rounded-full bg-rose-500/20 flex items-center justify-center animate-ping absolute border border-rose-500/50"></div>
-                                                <div className="w-2.5 h-2.5 rounded-full bg-rose-500 relative z-10"></div>
-
-                                                <div className="absolute top-2 left-6 bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-xl border border-rose-500/20 w-36 overflow-hidden transition-transform group-hover:scale-105">
-                                                    <div className="absolute top-0 left-0 w-1 h-full bg-rose-500"></div>
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <Heart className="w-4 h-4 text-rose-500 fill-rose-500/20" />
-                                                        <span className="text-[10px] font-bold text-background-dark/50 uppercase tracking-widest">Heart Rate</span>
-                                                    </div>
-                                                    <div className="text-3xl font-black text-background-dark tabular-nums tracking-tighter">{liveVitals.heartRate}<span className="text-xs font-bold text-background-dark/40 ml-1">bpm</span></div>
-                                                </div>
+                                                        <OrbitControls
+                                                            enablePan={false}
+                                                            makeDefault
+                                                            minPolarAngle={Math.PI / 6}
+                                                            maxPolarAngle={Math.PI / 1.5}
+                                                            minDistance={1.5}
+                                                            maxDistance={15}
+                                                            zoomSpeed={1.5}
+                                                        />
+                                                    </Suspense>
+                                                </Canvas>
                                             </div>
 
-                                            {/* SpO2 - Right Arm/Hand */}
-                                            <div className="absolute top-[48%] left-[20%] flex flex-col items-center group">
-                                                <div className="w-4 h-4 rounded-full bg-cyan-500/20 flex items-center justify-center animate-ping absolute border border-cyan-500/50"></div>
-                                                <div className="w-2.5 h-2.5 rounded-full bg-cyan-500 relative z-10"></div>
-
-                                                <div className="absolute top-2 right-6 bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-xl border border-cyan-500/20 w-36 overflow-hidden transition-transform group-hover:scale-105">
-                                                    <div className="absolute top-0 right-0 w-1 h-full bg-cyan-500"></div>
-                                                    <div className="flex items-center justify-end gap-2 mb-1">
-                                                        <span className="text-[10px] font-bold text-background-dark/50 uppercase tracking-widest">SpO2</span>
-                                                        <Wind className="w-4 h-4 text-cyan-500" />
-                                                    </div>
-                                                    <div className="text-3xl font-black text-background-dark tabular-nums text-right tracking-tighter">{liveVitals.spO2}<span className="text-xs font-bold text-background-dark/40 ml-1">%</span></div>
-                                                </div>
-                                            </div>
-
-                                            {/* Skin Temp - Forehead */}
-                                            <div className="absolute top-[12%] left-[48%] -translate-x-1/2 flex flex-col items-center group">
-                                                <div className="w-4 h-4 rounded-full bg-orange-500/20 flex items-center justify-center animate-ping absolute border border-orange-500/50"></div>
-                                                <div className="w-2.5 h-2.5 rounded-full bg-orange-500 relative z-10"></div>
-
-                                                <div className="absolute bottom-6 left-6 bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-xl border border-orange-500/20 w-36 overflow-hidden transition-transform group-hover:scale-105">
-                                                    <div className="absolute top-0 left-0 w-full h-1 bg-orange-500"></div>
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <ThermometerSun className="w-4 h-4 text-orange-500" />
-                                                        <span className="text-[10px] font-bold text-background-dark/50 uppercase tracking-widest">Core Temp</span>
-                                                    </div>
-                                                    <div className="text-3xl font-black text-background-dark tabular-nums tracking-tighter">{liveVitals.skinTemp?.toFixed(1)}<span className="text-xs font-bold text-background-dark/40 ml-1">°C</span></div>
-                                                </div>
-                                            </div>
-
-                                            {/* HRV - Chest Right side */}
-                                            <div className="absolute top-[35%] left-[35%] flex flex-col items-center group">
-                                                <div className="w-4 h-4 rounded-full bg-blue-500/20 flex items-center justify-center animate-ping absolute border border-blue-500/50"></div>
-                                                <div className="w-2.5 h-2.5 rounded-full bg-blue-500 relative z-10"></div>
-
-                                                <div className="absolute top-8 right-6 bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-xl border border-blue-500/20 w-36 overflow-hidden transition-transform group-hover:scale-105">
-                                                    <div className="absolute top-0 right-0 w-1 h-full bg-blue-500"></div>
-                                                    <div className="flex items-center justify-end gap-2 mb-1">
-                                                        <span className="text-[10px] font-bold text-background-dark/50 uppercase tracking-widest">Var. (HRV)</span>
-                                                        <Activity className="w-4 h-4 text-blue-500" />
-                                                    </div>
-                                                    <div className="text-3xl font-black text-background-dark tabular-nums text-right tracking-tighter">{liveVitals.hrv}<span className="text-xs font-bold text-background-dark/40 ml-1">ms</span></div>
-                                                </div>
-                                            </div>
+                                            {/* 3D model now includes the HTML labels internally */}
                                         </div>
 
                                         {/* Bottom Floating Info Panel */}
