@@ -1,73 +1,65 @@
-# React + TypeScript + Vite
+# CardioTwin AI | Your Heart's Early Warning System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+CardioTwin AI is a cutting-edge predictive health monitoring application that leverages 3D visualization and real-time biometric analysis to provide users with a "Digital Twin" of their cardiovascular health. Designed for accessibility and localized support, it empowers users to take proactive steps toward heart wellness.
 
-Currently, two official plugins are available:
+## ✨ Key Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+-   **🫀 3D Digital Twin Visualization**: Interactive 3D human body render (built with React Three Fiber) that maps real-time health data to anatomical locations.
+-   **📊 Real-time Biometric Tracking**: Continuous monitoring of vital signs:
+    -   Heart Rate (BPM)
+    -   Heart Rate Variability (HRV)
+    -   Oxygen Saturation (SpO2)
+    -   Skin Temperature
+-   **🤖 AI Predictive Nudges**: Dynamic, personalized health advice based on biometric trends to help users prevent strain and optimize recovery.
+-   **🌍 Localized Experience**: Full support for multiple languages, ensuring healthcare inclusivity:
+    -   English
+    -   Yorùbá
+    -   Hausa
+    -   Igbo
+-   **🛡️ Privacy-First Flow**: Secure session management designed with data protection (NDPA) principles in mind.
 
-## React Compiler
+## 🚀 Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+-   **Framework**: [React 19](https://react.dev/) + [Vite](https://vitejs.dev/)
+-   **Language**: [TypeScript](https://www.typescriptlang.org/)
+-   **3D Rendering**: [Three.js](https://threejs.org/) / [@react-three/fiber](https://github.com/pmndrs/react-three-fiber)
+-   **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+-   **Icons**: [Lucide React](https://lucide.dev/)
+-   **Animations**: [Framer Motion](https://www.framer.com/motion/)
+-   **Data Visualization**: [Recharts](https://recharts.org/)
 
-## Expanding the ESLint configuration
+## 🛠️ Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
+-   Node.js (v18+)
+-   npm or yarn
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Installation
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/ayreact/bit-cavista.git
+    cd bit-cavista
+    ```
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Create a `.env` file in the root directory and add the API base URL:
+    ```env
+    VITE_API_BASE_URL=https://bit-cavista.onrender.com
+    ```
+4.  Run the development server:
+    ```bash
+    npm run dev
+    ```
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 📂 Project Structure
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+-   `src/components`: Reusable UI components, including the 3D `HealthAvatar` and dashboard layout.
+-   `src/pages`: Main application views (Landing, Dashboard).
+-   `src/services`: API integration and data fetching logic.
+-   `src/i18n`: Multilingual context and translation files.
+-   `src/assets`: Static assets and icons.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
+Built with ❤️ for a healthier future.
