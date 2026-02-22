@@ -16,7 +16,7 @@ export default function Sidebar({ activeView, setActiveView }: SidebarProps) {
     ] as const;
 
     return (
-        <aside className="w-64 h-[calc(100vh-4rem)] border-r border-primary/10 bg-white flex flex-col sticky top-16 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+        <aside className="hidden md:flex w-64 h-[calc(100vh-4rem)] border-r border-primary/10 bg-white flex-col sticky top-16 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
             <div className="p-6 flex-1">
                 <nav className="space-y-2">
                     {navItems.map((item) => {

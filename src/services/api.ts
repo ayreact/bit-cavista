@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://cardiotwin-jqrct.ondigitalocean.app';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 export interface StartSessionRequest {
     session_id: string;
@@ -77,7 +77,11 @@ export const api = {
 
     async getScore(sessionId: string): Promise<any> {
         const res = await fetch(`${API_BASE_URL}/api/score/${sessionId}`);
-        if (!res.ok) throw new Error('Failed to fetch score');
+        if (!res.ok) {
+            const errorBody = await res.text().catch(() => 'No error body');
+            console.error(`[API] Score fetch failed (${res.status}):`, errorBody);
+            throw new Error(`Failed to fetch score: ${res.status} ${res.statusText}`);
+        }
         const data = await res.json();
         if (data.status === 'error' || data.error) {
             throw new Error(data.message || 'Invalid score data format');

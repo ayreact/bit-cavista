@@ -46,7 +46,7 @@ CardioTwin AI is a cutting-edge predictive health monitoring application that le
     ```
 3.  Create a `.env` file in the root directory and add the API base URL:
     ```env
-    VITE_API_BASE_URL=https://bit-cavista.onrender.com
+    VITE_API_BASE_URL=
     ```
 4.  Run the development server:
     ```bash
